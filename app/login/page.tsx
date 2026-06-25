@@ -263,6 +263,20 @@ export default function LoginPage() {
           Kesulitan login? Hubungi admin sekolah
         </p>
       </div>
+
+      {/* Footer */}
+      <footer style={{
+        marginTop: '20px',
+        fontSize: '0.75rem',
+        color: 'rgba(255, 255, 255, 0.8)',
+        fontFamily: 'Nunito, sans-serif',
+        fontWeight: 700,
+        zIndex: 10,
+        textAlign: 'center',
+        textShadow: '0 1px 3px rgba(0,0,0,0.15)',
+      }}>
+        developed by Rahmat Triadi, S.Kom.
+      </footer>
     </div>
   );
 }

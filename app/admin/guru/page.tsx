@@ -26,6 +26,8 @@ export default function AdminGuruPage() {
   const [showModal, setShowModal] = useState(false);
   const [showCredsModal, setShowCredsModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchClassOpen, setSearchClassOpen] = useState(false);
+  const [searchClassQuery, setSearchClassQuery] = useState('');
   
   // Generated credentials state
   const [creds, setCreds] = useState<AccountCredentials | null>(null);
@@ -72,6 +74,8 @@ export default function AdminGuruPage() {
     setEmail('');
     setPassword(DEFAULT_PASSWORD);
     setClassId('');
+    setSearchClassOpen(false);
+    setSearchClassQuery('');
     setShowModal(true);
   }
 
@@ -81,6 +85,8 @@ export default function AdminGuruPage() {
     setEmail(teacher.email);
     setPassword(teacher.password || DEFAULT_PASSWORD);
     setClassId(teacher.classId || '');
+    setSearchClassOpen(false);
+    setSearchClassQuery('');
     setShowModal(true);
   }
 
@@ -448,20 +454,131 @@ export default function AdminGuruPage() {
                 </div>
               )}
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">🏫 Tugas Kelas</label>
-                <select
-                  value={classId}
-                  onChange={e => setClassId(e.target.value)}
+                <div
+                  onClick={() => !saving && setSearchClassOpen(!searchClassOpen)}
                   className="input"
-                  disabled={saving}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: saving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: searchClassOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: searchClassOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="">-- Pilih Kelas (Bisa dikosongkan) --</option>
-                  {classes.map(cls => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                    {(() => {
+                      const selectedClass = classes.find(c => c.id === classId);
+                      return selectedClass 
+                        ? `🏫 ${selectedClass.name}` 
+                        : '-- Pilih Kelas (Bisa dikosongkan) --';
+                    })()}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+
+                {searchClassOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => { setSearchClassOpen(false); setSearchClassQuery(''); }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 8px)',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      maxHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Cari nama kelas..."
+                        value={searchClassQuery}
+                        onChange={e => setSearchClassQuery(e.target.value)}
+                        className="input"
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '0.85rem',
+                          borderRadius: '10px',
+                          border: '1.5px solid #E8ECF0',
+                          width: '100%',
+                        }}
+                        autoFocus
+                      />
+                      <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div
+                          onClick={() => {
+                            setClassId('');
+                            setSearchClassOpen(false);
+                            setSearchClassQuery('');
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#E74C3C',
+                            background: classId === '' ? '#FDEDEC' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                          className="student-option"
+                        >
+                          -- Pilih Kelas (Bisa dikosongkan) --
+                        </div>
+                        {classes
+                          .filter(c => c.name.toLowerCase().includes(searchClassQuery.toLowerCase()))
+                          .map(c => (
+                            <div
+                              key={c.id}
+                              onClick={() => {
+                                setClassId(c.id);
+                                setSearchClassOpen(false);
+                                setSearchClassQuery('');
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Nunito, sans-serif',
+                                fontWeight: 700,
+                                color: '#2C3E50',
+                                background: c.id === classId ? 'var(--bg-cream)' : 'transparent',
+                                transition: 'background 0.2s',
+                              }}
+                              className="student-option"
+                            >
+                              <span>🏫 {c.name}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
