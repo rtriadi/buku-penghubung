@@ -81,8 +81,12 @@ export default function TeacherRekapPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (user?.classId) {
-      loadRekapData();
+    if (user) {
+      if (user.classId) {
+        loadRekapData();
+      } else {
+        setLoading(false);
+      }
     }
   }, [user]);
 
@@ -175,12 +179,36 @@ export default function TeacherRekapPage() {
           📊 Rekap Bulanan Siswa
         </h1>
         <p style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '20px' }}>
-          Laporan aktivitas kelas {user?.classId?.toUpperCase().replace('-', ' ')} per bulan
+          Laporan aktivitas kelas {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} per bulan
         </p>
       </div>
 
-      {/* Filter Row */}
-      <div className="animate-fade-in-up delay-100" style={{
+      {!user?.classId ? (
+        <div className="animate-fade-in-up" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 20px',
+          background: 'white',
+          borderRadius: '24px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          border: '1px solid rgba(0,0,0,0.04)',
+          textAlign: 'center',
+          marginTop: '20px',
+        }}>
+          <span style={{ fontSize: '4rem', marginBottom: '16px' }}>📊</span>
+          <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: '#2C3E50', marginBottom: '8px' }}>
+            Belum Memiliki Kelas
+          </h3>
+          <p style={{ fontSize: '0.9rem', color: '#7f8c8d', maxWidth: '320px', lineHeight: '1.5' }}>
+            Akun Guru Anda belum terhubung dengan kelas manapun. Silakan hubungi <strong>Admin Sekolah</strong> untuk melihat rekapitulasi kelas.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Filter Row */}
+          <div className="animate-fade-in-up delay-100" style={{
         display: 'flex',
         flexWrap: 'wrap',
         gap: '12px',
@@ -338,7 +366,7 @@ export default function TeacherRekapPage() {
               <div>
                 <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem' }}>{student.name}</div>
                 <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
-                  Kelas {user?.classId?.toUpperCase().replace('-', ' ')} • Periode: {MONTHS[selectedMonth]} {selectedYear}
+                  Kelas {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} • Periode: {MONTHS[selectedMonth]} {selectedYear}
                 </div>
               </div>
             </div>
@@ -520,7 +548,7 @@ export default function TeacherRekapPage() {
                     <strong>Avatar Siswa:</strong> {student.avatarEmoji}
                   </div>
                   <div>
-                    <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}<br />
+                    <strong>Kelas:</strong> {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'}<br />
                     <strong>Tanggal Lahir:</strong> {student.birthdate}
                   </div>
                 </div>
@@ -583,7 +611,7 @@ export default function TeacherRekapPage() {
                   </div>
                   <div>
                     <strong>Wali Murid:</strong> {parentName}<br />
-                    <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}
+                    <strong>Kelas:</strong> {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'}
                   </div>
                 </div>
 
@@ -646,6 +674,8 @@ export default function TeacherRekapPage() {
         <div style={{ padding: '30px', textAlign: 'center', color: '#AEB6BF' }}>
           Siswa tidak ditemukan.
         </div>
+      )}
+        </>
       )}
     </div>
   );

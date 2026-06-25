@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import {
   getUsers,
+  getClasses,
   createUser,
   updateUser,
   deleteUser,
@@ -11,11 +12,12 @@ import {
   generateEmailFromName,
   DEFAULT_PASSWORD
 } from '@/lib/db';
-import type { User, AccountCredentials } from '@/lib/types';
+import type { User, AccountCredentials, ClassInfo } from '@/lib/types';
 
 export default function AdminGuruPage() {
   const [mounted, setMounted] = useState(false);
   const [teachers, setTeachers] = useState<User[]>([]);
+  const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,8 +51,12 @@ export default function AdminGuruPage() {
   async function refreshList() {
     setLoading(true);
     try {
-      const us = await getUsers();
+      const [us, cls] = await Promise.all([
+        getUsers(),
+        getClasses()
+      ]);
       setTeachers(us.filter(u => u.role === 'teacher'));
+      setClasses(cls);
     } catch (err) {
       console.error('Error refreshing list:', err);
     } finally {
@@ -452,8 +458,9 @@ export default function AdminGuruPage() {
                   style={{ cursor: 'pointer' }}
                 >
                   <option value="">-- Pilih Kelas (Bisa dikosongkan) --</option>
-                  <option value="kelas-a">Kelas A (TK A)</option>
-                  <option value="kelas-b">Kelas B (TK B)</option>
+                  {classes.map(cls => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
                 </select>
               </div>
 

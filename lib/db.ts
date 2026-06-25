@@ -165,9 +165,32 @@ export async function createUser(user: Omit<User, 'id' | 'createdAt'>): Promise<
     body: JSON.stringify(user),
   });
 
-  const data = await res.json();
   if (!res.ok) {
+    const data = await res.json();
     throw new Error(data.error || 'Gagal mendaftarkan user baru');
+  }
+
+  const data = await res.json();
+
+  // Sync classes.teacher_id if classId is set
+  if (user.role === 'teacher' && user.classId) {
+    // 1. Remove this teacher from any other class they were assigned to (just in case)
+    await supabase
+      .from('classes')
+      .update({ teacher_id: null })
+      .eq('teacher_id', data.user.id);
+    
+    // 2. Set any other teacher currently assigned to this new class to have class_id = null in profiles
+    await supabase
+      .from('profiles')
+      .update({ class_id: null })
+      .eq('class_id', user.classId);
+
+    // 3. Assign this teacher to the class
+    await supabase
+      .from('classes')
+      .update({ teacher_id: data.user.id })
+      .eq('id', user.classId);
   }
 
   return {
@@ -188,6 +211,41 @@ export async function updateUser(id: string, data: Partial<User>): Promise<User 
     if (data.role !== undefined) dbData.role = data.role;
     if (data.classId !== undefined) dbData.class_id = data.classId || null;
     if (data.studentId !== undefined) dbData.student_id = data.studentId || null;
+
+    // Sync relationships between profiles.class_id and classes.teacher_id
+    if (data.classId !== undefined) {
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('class_id')
+        .eq('id', id)
+        .single();
+      
+      const oldClassId = currentProfile?.class_id || null;
+      const newClassId = data.classId || null;
+
+      if (oldClassId !== newClassId) {
+        // 1. Remove teacher from old class
+        if (oldClassId) {
+          await supabase
+            .from('classes')
+            .update({ teacher_id: null })
+            .eq('id', oldClassId);
+        }
+        // 2. Assign teacher to new class
+        if (newClassId) {
+          // Remove any other teacher currently assigned to this new class
+          await supabase
+            .from('profiles')
+            .update({ class_id: null })
+            .eq('class_id', newClassId);
+
+          await supabase
+            .from('classes')
+            .update({ teacher_id: id })
+            .eq('id', newClassId);
+        }
+      }
+    }
 
     const { data: updated, error } = await supabase
       .from('profiles')
@@ -683,6 +741,21 @@ export async function createClass(data: Omit<ClassInfo, 'id'>): Promise<ClassInf
       .single();
 
     if (error) throw error;
+
+    // Sync profiles.class_id if teacherId is assigned
+    if (data.teacherId) {
+      // Remove new teacher from any other class they were assigned to
+      await supabase
+        .from('classes')
+        .update({ teacher_id: null })
+        .eq('teacher_id', data.teacherId);
+
+      await supabase
+        .from('profiles')
+        .update({ class_id: id })
+        .eq('id', data.teacherId);
+    }
+
     return mapClass(created);
   } catch (err) {
     console.error('createClass error:', err);
@@ -695,6 +768,41 @@ export async function updateClass(id: string, data: Partial<ClassInfo>): Promise
     const dbData: any = {};
     if (data.name !== undefined) dbData.name = data.name;
     if (data.teacherId !== undefined) dbData.teacher_id = data.teacherId || null;
+
+    // Sync relationships between classes.teacher_id and profiles.class_id
+    if (data.teacherId !== undefined) {
+      const { data: currentClass } = await supabase
+        .from('classes')
+        .select('teacher_id')
+        .eq('id', id)
+        .single();
+      
+      const oldTeacherId = currentClass?.teacher_id || null;
+      const newTeacherId = data.teacherId || null;
+
+      if (oldTeacherId !== newTeacherId) {
+        // 1. Remove old teacher's class assignment
+        if (oldTeacherId) {
+          await supabase
+            .from('profiles')
+            .update({ class_id: null })
+            .eq('id', oldTeacherId);
+        }
+        // 2. Assign new teacher to class
+        if (newTeacherId) {
+          // Remove new teacher from any other class they were assigned to
+          await supabase
+            .from('classes')
+            .update({ teacher_id: null })
+            .eq('teacher_id', newTeacherId);
+
+          await supabase
+            .from('profiles')
+            .update({ class_id: id })
+            .eq('id', newTeacherId);
+        }
+      }
+    }
 
     const { data: updated, error } = await supabase
       .from('classes')

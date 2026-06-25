@@ -130,8 +130,12 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     setMounted(true);
-    if (user?.classId) {
-      loadDashboardData();
+    if (user) {
+      if (user.classId) {
+        loadDashboardData();
+      } else {
+        setLoading(false);
+      }
     }
   }, [user]);
 
@@ -201,75 +205,101 @@ export default function TeacherDashboard() {
         </p>
       </div>
 
-      {/* Stats Row */}
-      <div className="animate-fade-in-up delay-100" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
-        <div className="stat-card">
-          <div className="stat-number">{totalHadir}</div>
-          <div className="stat-label">✅ Hadir</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number" style={{ color: '#F39C12' }}>{totalLengkap}</div>
-          <div className="stat-label">📋 Lengkap</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number" style={{ color: totalSakit > 0 ? '#E74C3C' : '#27AE60' }}>{totalSakit}</div>
-          <div className="stat-label">🤒 Sakit</div>
-        </div>
-      </div>
-
-      {/* Student List */}
-      <div className="section-header animate-fade-in-up delay-200">
-        <span style={{ fontSize: '1.5rem' }}>👧👦</span>
-        <h2 className="section-title">Daftar Siswa</h2>
-        <span style={{
-          marginLeft: 'auto',
-          background: '#E8F8EF',
-          color: '#27AE60',
-          padding: '4px 10px',
-          borderRadius: '20px',
-          fontSize: '0.8rem',
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 800,
+      {!user?.classId ? (
+        <div className="animate-fade-in-up" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px 20px',
+          background: 'white',
+          borderRadius: '24px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          border: '1px solid rgba(0,0,0,0.04)',
+          textAlign: 'center',
+          marginTop: '20px',
         }}>
-          {students.length} siswa
-        </span>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {students.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', background: 'white', borderRadius: '20px' }}>
-            Belum ada siswa terdaftar di kelas Anda. Hubungi admin sekolah.
-          </div>
-        ) : (
-          students.map((student, i) => (
-            <div key={student.id} className={`animate-fade-in-up delay-${Math.min((i + 2) * 100, 500)}`}>
-              <StudentCard
-                student={student}
-                log={logs[student.id]}
-                activities={activities}
-              />
+          <span style={{ fontSize: '4rem', marginBottom: '16px' }}>🏫</span>
+          <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: '#2C3E50', marginBottom: '8px' }}>
+            Belum Memiliki Kelas
+          </h3>
+          <p style={{ fontSize: '0.9rem', color: '#7f8c8d', maxWidth: '320px', lineHeight: '1.5' }}>
+            Akun Guru Anda belum terhubung dengan kelas manapun. Silakan hubungi <strong>Admin Sekolah</strong> untuk mengaitkan kelas Anda.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Stats Row */}
+          <div className="animate-fade-in-up delay-100" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+            <div className="stat-card">
+              <div className="stat-number">{totalHadir}</div>
+              <div className="stat-label">✅ Hadir</div>
             </div>
-          ))
-        )}
-      </div>
+            <div className="stat-card">
+              <div className="stat-number" style={{ color: '#F39C12' }}>{totalLengkap}</div>
+              <div className="stat-label">📋 Lengkap</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-number" style={{ color: totalSakit > 0 ? '#E74C3C' : '#27AE60' }}>{totalSakit}</div>
+              <div className="stat-label">🤒 Sakit</div>
+            </div>
+          </div>
 
-      {/* Helpful Tip */}
-      <div className="animate-fade-in-up" style={{
-        marginTop: '24px',
-        padding: '16px',
-        background: 'linear-gradient(135deg, #EBF5FB, #D6EAF8)',
-        borderRadius: '16px',
-        border: '1px solid #AED6F1',
-      }}>
-        <p style={{
-          fontFamily: 'Nunito, sans-serif',
-          fontWeight: 700,
-          fontSize: '0.85rem',
-          color: '#1A5276',
-        }}>
-          💡 Tips: Ketuk kartu siswa untuk mengisi laporan harian
-        </p>
-      </div>
+          {/* Student List */}
+          <div className="section-header animate-fade-in-up delay-200">
+            <span style={{ fontSize: '1.5rem' }}>👧👦</span>
+            <h2 className="section-title">Daftar Siswa</h2>
+            <span style={{
+              marginLeft: 'auto',
+              background: '#E8F8EF',
+              color: '#27AE60',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              fontSize: '0.8rem',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 800,
+            }}>
+              {students.length} siswa
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {students.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', background: 'white', borderRadius: '20px' }}>
+                Belum ada siswa terdaftar di kelas Anda. Hubungi admin sekolah.
+              </div>
+            ) : (
+              students.map((student, i) => (
+                <div key={student.id} className={`animate-fade-in-up delay-${Math.min((i + 2) * 100, 500)}`}>
+                  <StudentCard
+                    student={student}
+                    log={logs[student.id]}
+                    activities={activities}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Helpful Tip */}
+          <div className="animate-fade-in-up" style={{
+            marginTop: '24px',
+            padding: '16px',
+            background: 'linear-gradient(135deg, #EBF5FB, #D6EAF8)',
+            borderRadius: '16px',
+            border: '1px solid #AED6F1',
+          }}>
+            <p style={{
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              color: '#1A5276',
+            }}>
+              💡 Tips: Ketuk kartu siswa untuk mengisi laporan harian
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
