@@ -253,6 +253,24 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- ============================================================
 -- 12. DATA AWAL (SEEDING)
 -- ============================================================
+
+-- Clean up existing data to ensure fresh seeding
+SET session_replication_role = 'replica';
+
+TRUNCATE TABLE 
+  public.daily_logs, 
+  public.home_logs, 
+  public.students, 
+  public.profiles, 
+  public.classes, 
+  public.school_activities, 
+  public.home_activities 
+RESTART IDENTITY CASCADE;
+
+DELETE FROM auth.users;
+
+SET session_replication_role = 'origin';
+
 -- A. Masukkan data kelas default
 INSERT INTO classes (id, name) VALUES
   ('kelas-a', 'Kelas A (TK A)'),
