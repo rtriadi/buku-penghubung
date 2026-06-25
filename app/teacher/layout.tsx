@@ -28,14 +28,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-cream)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <img 
-              src="/logo-darul-khairat.png" 
-              alt="Logo Darul Khairat" 
-              style={{ width: '80px', height: '80px', objectFit: 'contain' }}
-              className="animate-pulse-soft"
-            />
-          </div>
+          <div style={{ fontSize: '3rem', animation: 'spin-slow 1s linear infinite', marginBottom: '16px', display: 'inline-block' }}>⏳</div>
           <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: 'var(--primary)' }}>Memuat...</p>
         </div>
       </div>

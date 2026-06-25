@@ -121,7 +121,8 @@ export default function AdminKelasPage() {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <>
+      <div className="animate-fade-in-up">
       {/* Action Header */}
       <div style={{
         display: 'flex',
@@ -259,6 +260,7 @@ export default function AdminKelasPage() {
           )}
         </div>
       )}
+      </div>
 
       {/* Modal Tambah/Edit */}
       {showModal && (
@@ -338,6 +340,6 @@ export default function AdminKelasPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -224,7 +224,8 @@ export default function AdminAktivitasPage() {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <>
+      <div className="animate-fade-in-up">
       {/* Tabs */}
       <div style={{
         display: 'flex',
@@ -512,6 +513,7 @@ export default function AdminAktivitasPage() {
           </div>
         )
       )}
+      </div>
 
       {/* Modal Sekolah */}
       {showSchoolModal && (
@@ -723,6 +725,6 @@ export default function AdminAktivitasPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

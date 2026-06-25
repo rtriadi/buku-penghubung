@@ -147,7 +147,8 @@ export default function AdminGuruPage() {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <>
+      <div className="animate-fade-in-up">
       {/* Header action */}
       <div style={{
         display: 'flex',
@@ -369,6 +370,7 @@ export default function AdminGuruPage() {
           </div>
         )
       )}
+      </div>
 
       {/* Modal Tambah/Edit */}
       {showModal && (
@@ -560,6 +562,6 @@ export default function AdminGuruPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

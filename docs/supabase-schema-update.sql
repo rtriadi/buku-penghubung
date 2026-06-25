@@ -272,7 +272,7 @@ INSERT INTO auth.users (
   'd0a0b0c0-d0d0-d0d0-d0d0-d0d0d0d0d0d0',
   'authenticated', 'authenticated',
   'admin@darulkhairat.com',
-  crypt('admin123', gen_salt('bf')),
+  crypt('Bismillah2026', gen_salt('bf')),
   now(), NULL, now(),
   '{"provider":"email","providers":["email"]}',
   '{"name":"Admin Darul Khairat","role":"admin"}',
@@ -282,7 +282,7 @@ INSERT INTO auth.users (
 -- Perbarui status konfirmasi & password jika akun admin sudah ada sebelumnya
 UPDATE auth.users
 SET 
-  encrypted_password = crypt('admin123', gen_salt('bf')),
+  encrypted_password = crypt('Bismillah2026', gen_salt('bf')),
   email_confirmed_at = COALESCE(email_confirmed_at, now()),
   last_sign_in_at = COALESCE(last_sign_in_at, now()),
   raw_app_meta_data = '{"provider":"email","providers":["email"]}',
@@ -298,93 +298,186 @@ VALUES (
   'admin@darulkhairat.com'
 ) ON CONFLICT (id) DO UPDATE SET role = 'admin', name = 'Admin Darul Khairat';
 
--- 2. Akun Guru (Teacher)
--- Email: guru@darulkhairat.com | Password: guru123
+-- 2. Akun Guru-Guru Aktif (Password Default: darulkhairat2026)
+-- Guru 1: Nurain Adam
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, recovery_sent_at, last_sign_in_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
   confirmation_token, email_change, email_change_token_new, recovery_token
 ) VALUES (
-  '00000000-0000-0000-0000-000000000000',
-  'e0e0e0e0-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
-  'authenticated', 'authenticated',
-  'guru@darulkhairat.com',
-  crypt('guru123', gen_salt('bf')),
-  now(), NULL, now(),
-  '{"provider":"email","providers":["email"]}',
-  '{"name":"Bu Fatimah Azzahra","role":"teacher"}',
-  now(), now(), '', '', '', ''
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000001',
+  'authenticated', 'authenticated', 'nurain.adam@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Nurain Adam","role":"teacher"}', now(), now(), '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- Perbarui status konfirmasi & password jika akun guru sudah ada sebelumnya
-UPDATE auth.users
-SET 
-  encrypted_password = crypt('guru123', gen_salt('bf')),
-  email_confirmed_at = COALESCE(email_confirmed_at, now()),
-  last_sign_in_at = COALESCE(last_sign_in_at, now()),
-  raw_app_meta_data = '{"provider":"email","providers":["email"]}',
-  raw_user_meta_data = '{"name":"Bu Fatimah Azzahra","role":"teacher"}'
-WHERE id = 'e0e0e0e0-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
-
--- Pastikan profile guru terbuat dengan role teacher & class_id = 'kelas-a'
 INSERT INTO public.profiles (id, name, role, email, class_id)
-VALUES (
-  'e0e0e0e0-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
-  'Bu Fatimah Azzahra',
-  'teacher',
-  'guru@darulkhairat.com',
-  'kelas-a'
-) ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Bu Fatimah Azzahra', class_id = 'kelas-a';
+VALUES ('e0100000-0000-0000-0000-000000000001', 'Nurain Adam', 'teacher', 'nurain.adam@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Nurain Adam', class_id = NULL;
 
--- Tautkan kelas-a ke guru ini
-UPDATE classes SET teacher_id = 'e0e0e0e0-e0e0-e0e0-e0e0-e0e0e0e0e0e0' WHERE id = 'kelas-a';
-
--- 3. Akun Wali Murid (Parent)
--- Email: ortu@darulkhairat.com | Password: ortu123
+-- Guru 2: Khairunnisa Mamulai
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, recovery_sent_at, last_sign_in_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
   confirmation_token, email_change, email_change_token_new, recovery_token
 ) VALUES (
-  '00000000-0000-0000-0000-000000000000',
-  'f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0',
-  'authenticated', 'authenticated',
-  'ortu@darulkhairat.com',
-  crypt('ortu123', gen_salt('bf')),
-  now(), NULL, now(),
-  '{"provider":"email","providers":["email"]}',
-  '{"name":"Bapak Ahmad","role":"parent"}',
-  now(), now(), '', '', '', ''
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000002',
+  'authenticated', 'authenticated', 'khairunnisa.mamulai@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Khairunnisa Mamulai","role":"teacher"}', now(), now(), '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- Perbarui status konfirmasi & password jika akun wali murid sudah ada sebelumnya
-UPDATE auth.users
-SET 
-  encrypted_password = crypt('ortu123', gen_salt('bf')),
-  email_confirmed_at = COALESCE(email_confirmed_at, now()),
-  last_sign_in_at = COALESCE(last_sign_in_at, now()),
-  raw_app_meta_data = '{"provider":"email","providers":["email"]}',
-  raw_user_meta_data = '{"name":"Bapak Ahmad","role":"parent"}'
-WHERE id = 'f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0';
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000002', 'Khairunnisa Mamulai', 'teacher', 'khairunnisa.mamulai@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Khairunnisa Mamulai', class_id = NULL;
 
--- Pastikan profile wali terbuat dengan role parent
-INSERT INTO public.profiles (id, name, role, email)
-VALUES (
-  'f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0',
-  'Bapak Ahmad',
-  'parent',
-  'ortu@darulkhairat.com'
-) ON CONFLICT (id) DO UPDATE SET role = 'parent', name = 'Bapak Ahmad';
+-- Guru 3: Sri Rahayu A Humokor
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000003',
+  'authenticated', 'authenticated', 'sri.rahayu@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Sri Rahayu A Humokor","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
 
--- C. Masukkan data siswa default & tautkan ke Wali Murid
-INSERT INTO students (id, name, nickname, class_id, parent_id, avatar_emoji, birthdate) VALUES
-  ('c0c0c0c0-c0c0-c0c0-c0c0-c0c0c0c0c0c0', 'Muhammad Zaid Al-Faruq', 'Zaid', 'kelas-a', 'f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0', '🦁', '2020-03-15')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000003', 'Sri Rahayu A Humokor', 'teacher', 'sri.rahayu@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Sri Rahayu A Humokor', class_id = NULL;
 
--- Tautkan profil wali murid ke siswa ini
-UPDATE public.profiles SET student_id = 'c0c0c0c0-c0c0-c0c0-c0c0-c0c0c0c0c0c0' WHERE id = 'f0f0f0f0-f0f0-f0f0-f0f0-f0f0f0f0f0f0';
+-- Guru 4: Mutmainnah Umar
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000004',
+  'authenticated', 'authenticated', 'mutmainnah.umar@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Mutmainnah Umar","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000004', 'Mutmainnah Umar', 'teacher', 'mutmainnah.umar@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Mutmainnah Umar', class_id = NULL;
+
+-- Guru 5: Irniyusnita Abas
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000005',
+  'authenticated', 'authenticated', 'irniyusnita.abas@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Irniyusnita Abas","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000005', 'Irniyusnita Abas', 'teacher', 'irniyusnita.abas@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Irniyusnita Abas', class_id = NULL;
+
+-- Guru 6: Fitri Sumaila
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000006',
+  'authenticated', 'authenticated', 'fitri.sumaila@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Fitri Sumaila","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000006', 'Fitri Sumaila', 'teacher', 'fitri.sumaila@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Fitri Sumaila', class_id = NULL;
+
+-- Guru 7: Yolan Y Pasani
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000007',
+  'authenticated', 'authenticated', 'yolan.pasani@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Yolan Y Pasani","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000007', 'Yolan Y Pasani', 'teacher', 'yolan.pasani@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Yolan Y Pasani', class_id = NULL;
+
+-- Guru 8: Yulmi Manangin
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000008',
+  'authenticated', 'authenticated', 'yulmi.manangin@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Yulmi Manangin","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000008', 'Yulmi Manangin', 'teacher', 'yulmi.manangin@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Yulmi Manangin', class_id = NULL;
+
+-- Guru 9: Salma Fadlina Laus
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000009',
+  'authenticated', 'authenticated', 'salma.fadlina@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Salma Fadlina Laus","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000009', 'Salma Fadlina Laus', 'teacher', 'salma.fadlina@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Salma Fadlina Laus', class_id = NULL;
+
+-- Guru 10: Miranda Sumaila
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, recovery_sent_at, last_sign_in_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', 'e0100000-0000-0000-0000-000000000010',
+  'authenticated', 'authenticated', 'miranda.sumaila@darulkhairat.com',
+  crypt('darulkhairat2026', gen_salt('bf')),
+  now(), NULL, now(), '{"provider":"email","providers":["email"]}',
+  '{"name":"Miranda Sumaila","role":"teacher"}', now(), now(), '', '', '', ''
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, name, role, email, class_id)
+VALUES ('e0100000-0000-0000-0000-000000000010', 'Miranda Sumaila', 'teacher', 'miranda.sumaila@darulkhairat.com', NULL)
+ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Miranda Sumaila', class_id = NULL;
 
 -- D. Masukkan aktivitas sekolah default
 INSERT INTO school_activities (id, label, emoji, category, "order", is_active) VALUES

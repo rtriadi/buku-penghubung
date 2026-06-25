@@ -176,7 +176,8 @@ export default function AdminWaliPage() {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <>
+      <div className="animate-fade-in-up">
       {/* Header Info */}
       <div style={{
         display: 'flex',
@@ -398,6 +399,7 @@ export default function AdminWaliPage() {
           </div>
         )
       )}
+      </div>
 
       {/* Modal Tambah/Edit */}
       {showModal && (
@@ -419,6 +421,8 @@ export default function AdminWaliPage() {
             width: '100%',
             maxWidth: '450px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
           }}>
             <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 950, fontSize: '1.25rem', color: '#2C3E50', margin: '0 0 20px 0' }}>
               {editingId ? '✏️ Edit Data Wali' : '👨‍👩 Daftarkan Wali Baru'}
@@ -426,12 +430,12 @@ export default function AdminWaliPage() {
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div>
-                <label className="input-label">👨‍👩 Nama Wali / Orang Tua</label>
+                <label className="input-label">👨‍👩 Nama Lengkap Wali</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Contoh: Bpk. Ahmad (Ayah Zaid)"
+                  placeholder="Contoh: Bapak Ahmad"
                   className="input"
                   required
                   disabled={saving}
@@ -439,14 +443,13 @@ export default function AdminWaliPage() {
               </div>
 
               <div>
-                <label className="input-label">📧 Email Login</label>
+                <label className="input-label">📧 Email Login (opsional)</label>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Contoh: ayah.zaid@gmail.com"
+                  placeholder="Kosongkan untuk otomatis generate"
                   className="input"
-                  required
                   disabled={saving || !!editingId}
                 />
               </div>
@@ -586,6 +589,6 @@ export default function AdminWaliPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

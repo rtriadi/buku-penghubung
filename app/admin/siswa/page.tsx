@@ -166,7 +166,8 @@ export default function AdminSiswaPage() {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <>
+      <div className="animate-fade-in-up">
       {/* Action Header */}
       <div style={{
         display: 'flex',
@@ -367,6 +368,7 @@ export default function AdminSiswaPage() {
           </div>
         )
       )}
+      </div>
 
       {/* Modal Tambah/Edit */}
       {showModal && (
@@ -531,6 +533,6 @@ export default function AdminSiswaPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

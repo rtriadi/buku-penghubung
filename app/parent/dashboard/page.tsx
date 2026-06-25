@@ -131,7 +131,7 @@ export default function ParentDashboard() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-cream)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', animation: 'spin-slow 1s linear infinite', marginBottom: '16px' }}>🏡</div>
+          <div style={{ fontSize: '3rem', animation: 'spin-slow 1s linear infinite', marginBottom: '16px', display: 'inline-block' }}>⏳</div>
           <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: 'var(--accent-blue)' }}>Memuat laporan anak...</p>
         </div>
       </div>
@@ -362,14 +362,41 @@ export default function ParentDashboard() {
 
                   {/* Time input */}
                   {activity.hasTime && val !== false && val !== undefined && (
-                    <div style={{ marginTop: '8px', paddingLeft: '16px' }}>
+                    <div style={{ 
+                      marginTop: '10px', 
+                      paddingLeft: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }} className="animate-fade-in-up">
+                      <span style={{ fontSize: '1rem' }}>⏰</span>
+                      <label style={{ 
+                        fontSize: '0.8rem', 
+                        fontWeight: 800, 
+                        color: 'var(--text-medium)', 
+                        fontFamily: 'Nunito, sans-serif' 
+                      }}>
+                        Pukul:
+                      </label>
                       <input
                         type="time"
                         value={typeof val === 'string' ? val : ''}
                         onChange={e => setActivityTime(activity.id, e.target.value)}
                         className="input"
-                        style={{ maxWidth: '140px' }}
-                        placeholder="20:00"
+                        style={{ 
+                          maxWidth: '130px', 
+                          padding: '8px 12px',
+                          borderRadius: '10px',
+                          border: '1.5px solid #AED6F1',
+                          background: '#F4F9FD',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          color: '#1A5276',
+                          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
                       />
                     </div>
                   )}
