@@ -1,17 +1,18 @@
 // app/teacher/rekap/page.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getStudentsByClass,
   getDailyLogs,
   getHomeLogs,
   getActiveSchoolActivities,
-  getActiveHomeActivities
+  getActiveHomeActivities,
+  getUserById
 } from '@/lib/db';
 import { useAuth } from '@/lib/auth-context';
 import { CLASS_NAME } from '@/lib/constants';
-import { formatDateIndonesia, formatDateShort, getLastNDates, downloadPDF } from '@/lib/utils';
+import { formatDateIndonesia, formatDateShort, downloadPDF } from '@/lib/utils';
 import type { DailyLog, HomeLog, Student, SchoolActivity, HomeActivity } from '@/lib/types';
 
 function getLog(logs: DailyLog[], studentId: string, date: string) {
@@ -32,6 +33,24 @@ function ActivityDot({ done }: { done: boolean }) {
   );
 }
 
+function getDatesInMonth(year: number, month: number): string[] {
+  const datesList: string[] = [];
+  const date = new Date(year, month, 1);
+  while (date.getMonth() === month) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    datesList.push(`${yyyy}-${mm}-${dd}`);
+    date.setDate(date.getDate() + 1);
+  }
+  return datesList;
+}
+
+const MONTHS = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
 export default function TeacherRekapPage() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -44,7 +63,12 @@ export default function TeacherRekapPage() {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const dates = getLastNDates(7);
+  // Month and Year Filters
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [parentName, setParentName] = useState('Orang Tua / Wali');
+
+  const dates = getDatesInMonth(selectedYear, selectedMonth);
   const student = students.find(s => s.id === selectedStudentId);
 
   useEffect(() => {
@@ -53,6 +77,29 @@ export default function TeacherRekapPage() {
       loadRekapData();
     }
   }, [user]);
+
+  useEffect(() => {
+    async function fetchParent() {
+      if (student?.parentId) {
+        try {
+          const res = await fetch(`/api/profile?id=${student.parentId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.name) {
+              setParentName(data.name);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching parent profile:', e);
+        }
+      }
+      setParentName('Orang Tua / Wali');
+    }
+    if (student) {
+      fetchParent();
+    }
+  }, [student]);
 
   async function loadRekapData() {
     if (!user?.classId) return;
@@ -86,7 +133,12 @@ export default function TeacherRekapPage() {
     if (!student) return;
     setIsDownloading(true);
     try {
-      await downloadPDF('report-template', `Laporan-${student.nickname}-${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.pdf`);
+      const monthStr = MONTHS[selectedMonth];
+      await downloadPDF(
+        'report-template',
+        `Rekap-${student.nickname}-${monthStr}-${selectedYear}.pdf`,
+        'landscape'
+      );
     } catch (err) {
       console.error(err);
       alert('Gagal mendownload PDF.');
@@ -112,26 +164,59 @@ export default function TeacherRekapPage() {
     <div className="page-content">
       <div className="animate-fade-in-up">
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem', color: '#2C3E50', marginBottom: '4px' }}>
-          📊 Rekap Mingguan
+          📊 Rekap Bulanan Siswa
         </h1>
         <p style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '20px' }}>
-          Laporan 7 hari terakhir siswa kelas {user?.classId?.toUpperCase().replace('-', ' ')}
+          Laporan aktivitas kelas {user?.classId?.toUpperCase().replace('-', ' ')} per bulan
         </p>
       </div>
 
-      {/* Student Selector */}
-      <div className="animate-fade-in-up delay-100" style={{ marginBottom: '20px' }}>
-        <label className="input-label">👧 Pilih Siswa</label>
-        <select
-          value={selectedStudentId}
-          onChange={e => setSelectedStudentId(e.target.value)}
-          className="input"
-          style={{ cursor: 'pointer' }}
-        >
-          {students.map(s => (
-            <option key={s.id} value={s.id}>{s.avatarEmoji} {s.name}</option>
-          ))}
-        </select>
+      {/* Filter Row */}
+      <div className="animate-fade-in-up delay-100" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+        gap: '12px',
+        marginBottom: '20px'
+      }}>
+        <div>
+          <label className="input-label">👧 Pilih Siswa</label>
+          <select
+            value={selectedStudentId}
+            onChange={e => setSelectedStudentId(e.target.value)}
+            className="input"
+            style={{ cursor: 'pointer' }}
+          >
+            {students.map(s => (
+              <option key={s.id} value={s.id}>{s.avatarEmoji} {s.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="input-label">📅 Pilih Bulan</label>
+          <select
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(Number(e.target.value))}
+            className="input"
+            style={{ cursor: 'pointer' }}
+          >
+            {MONTHS.map((m, idx) => (
+              <option key={idx} value={idx}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="input-label">🗓️ Tahun</label>
+          <select
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
+            className="input"
+            style={{ cursor: 'pointer' }}
+          >
+            {[2025, 2026, 2027].map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {students.length === 0 ? (
@@ -153,7 +238,7 @@ export default function TeacherRekapPage() {
               <div>
                 <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem' }}>{student.name}</div>
                 <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
-                  Kelas {user?.classId?.toUpperCase().replace('-', ' ')} • Lahir: {student.birthdate}
+                  Kelas {user?.classId?.toUpperCase().replace('-', ' ')} • Periode: {MONTHS[selectedMonth]} {selectedYear}
                 </div>
               </div>
             </div>
@@ -299,78 +384,103 @@ export default function TeacherRekapPage() {
             onClick={handleDownload}
             disabled={isDownloading}
             className="btn btn-secondary btn-lg btn-full"
+            style={{ marginBottom: '30px' }}
           >
-            {isDownloading ? '⏳ Mempersiapkan PDF...' : '📥 Unduh Laporan PDF'}
+            {isDownloading ? '⏳ Mempersiapkan PDF Bulanan (Landscape)...' : '📥 Unduh Laporan PDF (Landscape)'}
           </button>
 
-          {/* Hidden PDF Template */}
+          {/* Hidden PDF Template (Landscape A4: 1123px width) */}
           <div id="report-template" style={{
             position: 'fixed', left: '-9999px', top: 0,
-            width: '794px', background: 'white', padding: '40px',
+            width: '1123px', background: 'white', padding: '40px',
             fontFamily: 'Arial, sans-serif',
           }}>
             <div style={{ textAlign: 'center', borderBottom: '3px solid #27AE60', paddingBottom: '20px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🕌</div>
-              <h1 style={{ fontSize: '16pt', fontWeight: 'bold', color: '#1E8449', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
-              <h2 style={{ fontSize: '13pt', color: '#27AE60', margin: '4px 0 0' }}>Buku Penghubung Online</h2>
-              <p style={{ fontSize: '10pt', color: '#7f8c8d', margin: '4px 0 0' }}>Laporan Harian Siswa — Minggu Ini</p>
+              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🕌</div>
+              <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1E8449', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
+              <h2 style={{ fontSize: '14pt', color: '#27AE60', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan</h2>
+              <p style={{ fontSize: '10pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
             </div>
-            <div style={{ marginBottom: '20px', padding: '12px', background: '#D5F5E3', borderRadius: '8px' }}>
-              <strong>Nama Siswa:</strong> {student.name}<br />
-              <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}<br />
-              <strong>Periode:</strong> {formatDateShort(dates[0])} — {formatDateShort(dates[dates.length - 1])}
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', padding: '14px', background: '#D5F5E3', borderRadius: '10px', fontSize: '10.5pt' }}>
+              <div>
+                <strong>Nama Siswa:</strong> {student.name}<br />
+                <strong>Avatar Siswa:</strong> {student.avatarEmoji}
+              </div>
+              <div>
+                <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}<br />
+                <strong>Tanggal Lahir:</strong> {student.birthdate}
+              </div>
             </div>
-            <h3 style={{ fontSize: '12pt', color: '#1E8449', marginBottom: '10px' }}>Kegiatan Sekolah</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt', marginBottom: '20px' }}>
+
+            <h3 style={{ fontSize: '13pt', color: '#1E8449', marginBottom: '10px', borderBottom: '1.5px solid #27AE60', paddingBottom: '4px' }}>Kegiatan Sekolah</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '24px' }}>
               <thead>
                 <tr style={{ background: '#27AE60', color: 'white' }}>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd' }}>Kegiatan</th>
-                  {dates.map(d => <th key={d} style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>{formatDateShort(d)}</th>)}
+                  <th style={{ padding: '8px 6px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Kegiatan</th>
+                  {dates.map(d => <th key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {schoolActivities.map((act, idx) => (
                   <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{act.label}</td>
+                    <td style={{ padding: '8px 6px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
                     {dates.map(d => {
                       const log = getLog(dailyLogs, student.id, d);
-                      return <td key={d} style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd', color: log?.schoolActivities?.[act.id] ? '#27AE60' : '#E74C3C' }}>
-                        {log?.schoolActivities?.[act.id] ? '✓' : '—'}
-                      </td>;
+                      const done = log?.schoolActivities?.[act.id] ?? false;
+                      return (
+                        <td key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#27AE60' : '#ddd', fontWeight: done ? 'bold' : 'normal' }}>
+                          {done ? '✓' : '—'}
+                        </td>
+                      );
                     })}
                   </tr>
                 ))}
               </tbody>
             </table>
-            <h3 style={{ fontSize: '12pt', color: '#3498DB', marginBottom: '10px' }}>Aktivitas Rumah</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt', marginBottom: '20px' }}>
+
+            <h3 style={{ fontSize: '13pt', color: '#3498DB', marginBottom: '10px', borderBottom: '1.5px solid #3498DB', paddingBottom: '4px' }}>Aktivitas Rumah</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '28px' }}>
               <thead>
                 <tr style={{ background: '#3498DB', color: 'white' }}>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #ddd' }}>Aktivitas</th>
-                  {dates.map(d => <th key={d} style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd' }}>{formatDateShort(d)}</th>)}
+                  <th style={{ padding: '8px 6px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Aktivitas</th>
+                  {dates.map(d => <th key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {homeActivities.map((act, idx) => (
                   <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                    <td style={{ padding: '8px', border: '1px solid #ddd' }}>{act.label}</td>
+                    <td style={{ padding: '8px 6px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
                     {dates.map(d => {
                       const log = getHomeLog(homeLogs, student.id, d);
                       const val = log?.homeActivities?.[act.id];
-                      return <td key={d} style={{ padding: '8px', textAlign: 'center', border: '1px solid #ddd', color: '#3498DB' }}>
-                        {typeof val === 'string' ? val : val ? '✓' : '—'}
-                      </td>;
+                      const done = val === true || (typeof val === 'string' && val.length > 0);
+                      return (
+                        <td key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#2980B9' : '#ddd', fontSize: act.hasTime && typeof val === 'string' && val ? '6.5pt' : '7.5pt' }}>
+                          {act.hasTime && typeof val === 'string' && val ? val : done ? '✓' : '—'}
+                        </td>
+                      );
                     })}
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
+
+            {/* Landscape Signatures Row */}
+            <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', padding: '0 80px' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '160px', marginTop: '48px' }}>Wali Kelas</div>
+                <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Mengetahui,</div>
+                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
+                  {user?.name || 'Wali Kelas'}
+                </div>
+                <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Wali Kelas</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '160px', marginTop: '48px' }}>Orang Tua / Wali</div>
+                <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Menyetujui,</div>
+                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
+                  {parentName}
+                </div>
+                <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
               </div>
             </div>
           </div>

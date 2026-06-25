@@ -55,7 +55,11 @@ export function getLastNDates(n: number): string[] {
   return dates;
 }
 
-export async function downloadPDF(elementId: string, filename: string): Promise<void> {
+export async function downloadPDF(
+  elementId: string,
+  filename: string,
+  orientation: 'portrait' | 'landscape' = 'portrait'
+): Promise<void> {
   const { default: html2canvas } = await import('html2canvas');
   const { default: jsPDF } = await import('jspdf');
 
@@ -64,7 +68,7 @@ export async function downloadPDF(elementId: string, filename: string): Promise<
 
   const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
   const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 

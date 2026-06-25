@@ -22,8 +22,8 @@ export default function LaporanPage() {
   const router = useRouter();
   const { user } = useAuth();
   const studentId = params.studentId as string;
-  const today = getTodayISO();
 
+  const [selectedDate, setSelectedDate] = useState(getTodayISO());
   const [student, setStudent] = useState<Student | null>(null);
   const [schoolActivities, setSchoolActivities] = useState<SchoolActivity[]>([]);
   const [activities, setActivities] = useState<Record<string, boolean>>({});
@@ -43,7 +43,7 @@ export default function LaporanPage() {
         const [st, acts, log] = await Promise.all([
           getStudentById(studentId),
           getActiveSchoolActivities(),
-          getDailyLog(studentId, today)
+          getDailyLog(studentId, selectedDate)
         ]);
 
         if (st) {
@@ -64,6 +64,10 @@ export default function LaporanPage() {
             initialActs[a.id] = false;
           });
           setActivities(initialActs);
+          setTeacherNote('');
+          setKondisi('sehat');
+          setSuhu('36.5');
+          setHealthNote('');
         }
       } catch (err) {
         console.error('Error loading laporan data:', err);
@@ -73,7 +77,7 @@ export default function LaporanPage() {
     }
 
     loadData();
-  }, [studentId, today]);
+  }, [studentId, selectedDate]);
 
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ show: true, message, type });
@@ -93,7 +97,7 @@ export default function LaporanPage() {
     try {
       await upsertDailyLog({
         studentId,
-        date: today,
+        date: selectedDate,
         schoolActivities: activities,
         teacherNote,
         healthStatus: {
@@ -101,7 +105,7 @@ export default function LaporanPage() {
           kondisi,
           catatan: healthNote,
         },
-        createdBy: user.id, // Save under the actual logged-in teacher's Supabase UUID
+        createdBy: user.id,
       });
       showToast('Laporan berhasil disimpan! 🎉', 'success');
       setTimeout(() => router.push('/teacher/dashboard'), 1500);
@@ -172,10 +176,15 @@ export default function LaporanPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
-            width: '72px', height: '72px', borderRadius: '20px',
+            width: '72px',
+            height: '72px',
+            borderRadius: '20px',
             background: 'rgba(255,255,255,0.25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '2.5rem', flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2.5rem',
+            flexShrink: 0,
             boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
           }}>
             {student.avatarEmoji}
@@ -186,7 +195,7 @@ export default function LaporanPage() {
             </h1>
             <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>{student.name}</p>
             <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-              📅 {formatDateIndonesia(today)}
+              📅 {formatDateIndonesia(selectedDate)}
             </p>
           </div>
           {/* Progress circle */}
@@ -211,6 +220,21 @@ export default function LaporanPage() {
       </div>
 
       <div className="page-content" style={{ paddingTop: '20px' }}>
+        {/* Date Selector Row */}
+        <div className="card" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label className="input-label" style={{ margin: 0, fontWeight: 800, color: 'var(--text-dark)' }}>
+            📅 Tanggal Laporan:
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="input"
+            style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+            max={getTodayISO()}
+          />
+        </div>
+
         {/* Activities by Category */}
         {ACTIVITY_CATEGORIES.map(cat => {
           const catActivities = schoolActivities.filter(a => a.category === cat.id);
@@ -233,7 +257,7 @@ export default function LaporanPage() {
                     key={activity.id}
                     onClick={() => toggleActivity(activity.id)}
                     className={`activity-item ${activities[activity.id] ? 'checked' : ''}`}
-                    style={{ width: '100%', textAlign: 'left' }}
+                    style={{ width: '100%', textAlign: 'left', border: 'none' }}
                   >
                     <span className="activity-emoji">{activity.emoji}</span>
                     <span style={{

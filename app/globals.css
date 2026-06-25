@@ -22,6 +22,22 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
+
+  /* Spacing Tokens based on Golden Ratio */
+  --spacing-xs: 6px;
+  --spacing-sm: 10px;
+  --spacing-md: 16px;
+  --spacing-lg: 26px;
+  --spacing-xl: 42px;
+  --spacing-xxl: 68px;
+
+  /* Font Sizing Tokens based on Golden Ratio */
+  --font-xs: 0.62rem;
+  --font-sm: 0.77rem;
+  --font-base: 1rem;
+  --font-md: 1.25rem;
+  --font-lg: 1.62rem;
+  --font-xl: 2.62rem;
 }
 
 * {
@@ -39,6 +55,7 @@ body {
   background-color: var(--bg-cream);
   color: var(--text-dark);
   min-height: 100vh;
+  line-height: 1.618;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -571,4 +588,64 @@ h1, h2, h3, h4, .display {
     max-width: 480px;
     margin: 0 auto;
   }
+}
+
+/* ── RESPONSIVE MODAL SYSTEM (GOLDEN RATIO SPACING) ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 62, 80, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  overflow-y: auto;
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.modal-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2 * var(--spacing-lg));
+  transform-origin: center;
+  animation: fadeInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+  border-bottom: 1.5px solid #F2F3F4;
+}
+
+.modal-title {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: var(--font-md);
+  color: var(--text-dark);
+}
+
+.modal-body {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  flex: 1;
+  line-height: 1.618;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  border-top: 1.5px solid #F2F3F4;
 }

@@ -37,7 +37,11 @@ export const KONDISI_OPTIONS = [
   { value: 'sakit' as const, label: 'Sakit', emoji: '🤒', color: '#E74C3C', bg: '#FADBD8' },
 ];
 
-export const STUDENT_AVATAR_EMOJIS = ['🦁', '🐻', '🐰', '🦋', '🐯', '🦊', '🐼', '🐨', '🦄', '🐸'];
+export const STUDENT_AVATAR_EMOJIS = [
+  '🦁', '🐻', '🐰', '🦋', '🐯', '🦊', '🐼', '🐨', '🦄', '🐸',
+  '🐙', '🐵', '🐣', '🦖', '🐝', '🐞', '🐢', '🐬', '🐳', '🦉',
+  '🐱', '🐶', '🐔', '🐧', '🦆', '🦓', '🦒', '🐘', '🦘', '🦥'
+];
 
 export const CLASS_NAME = 'Kelas A';
 export const SCHOOL_NAME = 'PAUD Islam Terpadu Darul Khairat';

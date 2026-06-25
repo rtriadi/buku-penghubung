@@ -25,8 +25,8 @@ function Toast({ message, type, show }: { message: string; type: 'success' | 'er
 
 export default function ParentDashboard() {
   const { user } = useAuth();
-  const today = getTodayISO();
-
+  
+  const [selectedDate, setSelectedDate] = useState(getTodayISO());
   const [student, setStudent] = useState<Student | null>(null);
   const [schoolActivities, setSchoolActivities] = useState<SchoolActivity[]>([]);
   const [activeHomeActivities, setActiveHomeActivities] = useState<HomeActivity[]>([]);
@@ -54,8 +54,8 @@ export default function ParentDashboard() {
           getStudentById(user.studentId),
           getActiveSchoolActivities(),
           getActiveHomeActivities(),
-          getDailyLog(user.studentId, today),
-          getHomeLog(user.studentId, today)
+          getDailyLog(user.studentId, selectedDate),
+          getHomeLog(user.studentId, selectedDate)
         ]);
 
         if (st) {
@@ -75,6 +75,7 @@ export default function ParentDashboard() {
             initialActs[a.id] = false;
           });
           setHomeActivities(initialActs);
+          setParentNote('');
         }
       } catch (err) {
         console.error('Error loading parent dashboard:', err);
@@ -84,7 +85,7 @@ export default function ParentDashboard() {
     }
 
     loadData();
-  }, [user, today]);
+  }, [user, selectedDate]);
 
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ show: true, message, type });
@@ -101,6 +102,7 @@ export default function ParentDashboard() {
     });
   }
 
+  // Update time for home activities
   function setActivityTime(id: string, time: string) {
     setHomeActivities(prev => ({ ...prev, [id]: time }));
   }
@@ -111,7 +113,7 @@ export default function ParentDashboard() {
     try {
       await upsertHomeLog({
         studentId: student.id,
-        date: today,
+        date: selectedDate,
         homeActivities,
         parentNote,
         createdBy: user.id,
@@ -180,7 +182,7 @@ export default function ParentDashboard() {
               </h1>
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)' }}>{student.name}</p>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                📅 {mounted ? formatDateIndonesia(today) : '—'}
+                📅 {mounted ? formatDateIndonesia(selectedDate) : '—'}
               </p>
             </div>
             {kondisiData && (
@@ -228,20 +230,34 @@ export default function ParentDashboard() {
               textAlign: 'center',
               fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)',
             }}>
-              ⏳ Laporan sekolah belum diisi guru hari ini
+              ⏳ Laporan sekolah belum diisi guru pada tanggal ini
             </div>
           )}
         </div>
       </div>
 
       <div className="page-content" style={{ paddingTop: '24px' }}>
+        {/* Date Selector Row */}
+        <div className="card animate-fade-in-up" style={{ padding: '16px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label className="input-label" style={{ margin: 0, fontWeight: 800, color: 'var(--text-dark)' }}>
+            📅 Tanggal Laporan Rumah:
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="input"
+            style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+            max={getTodayISO()}
+          />
+        </div>
 
         {/* Teacher's Report (read-only) */}
         {schoolLog && (
           <div className="animate-fade-in-up" style={{ marginBottom: '24px' }}>
             <div className="section-header">
               <span style={{ fontSize: '1.4rem' }}>🏫</span>
-              <h2 className="section-title">Laporan Guru Hari Ini</h2>
+              <h2 className="section-title">Laporan Guru Tanggal Ini</h2>
             </div>
 
             <div className="card" style={{ padding: '16px', marginBottom: '14px' }}>
@@ -304,7 +320,7 @@ export default function ParentDashboard() {
             <h2 className="section-title">Aktivitas di Rumah</h2>
           </div>
           <p style={{ fontSize: '0.8rem', color: '#7f8c8d', marginBottom: '16px' }}>
-            Ceritakan kegiatan {student.nickname} di rumah hari ini 😊
+            Ceritakan kegiatan {student.nickname} di rumah pada tanggal ini 😊
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
@@ -317,7 +333,7 @@ export default function ParentDashboard() {
                   <button
                     onClick={() => toggleHomeActivity(activity.id, activity.hasTime)}
                     className={`activity-item ${isChecked ? 'checked' : ''}`}
-                    style={{ width: '100%', textAlign: 'left' }}
+                    style={{ width: '100%', textAlign: 'left', border: 'none' }}
                   >
                     <span className="activity-emoji">{activity.emoji}</span>
                     <div style={{ flex: 1 }}>
@@ -368,7 +384,7 @@ export default function ParentDashboard() {
             <textarea
               value={parentNote}
               onChange={e => setParentNote(e.target.value)}
-              placeholder={`Ceritakan hal menarik tentang ${student.nickname} hari ini...\n\nContoh: ${student.nickname} malam ini belajar sendiri tanpa disuruh! 🌟`}
+              placeholder={`Ceritakan hal menarik tentang ${student.nickname} pada tanggal ini...\n\nContoh: ${student.nickname} malam ini belajar sendiri tanpa disuruh! 🌟`}
               className="input textarea"
               style={{ minHeight: '110px' }}
             />

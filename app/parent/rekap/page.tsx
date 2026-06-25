@@ -8,10 +8,30 @@ import {
   getDailyLogs,
   getHomeLogs,
   getActiveSchoolActivities,
-  getActiveHomeActivities
+  getActiveHomeActivities,
+  getClasses,
+  getUserById
 } from '@/lib/db';
-import { formatDateIndonesia, formatDateShort, getLastNDates, downloadPDF } from '@/lib/utils';
+import { formatDateIndonesia, formatDateShort, downloadPDF } from '@/lib/utils';
 import type { DailyLog, HomeLog, Student, SchoolActivity, HomeActivity } from '@/lib/types';
+
+function getDatesInMonth(year: number, month: number): string[] {
+  const datesList: string[] = [];
+  const date = new Date(year, month, 1);
+  while (date.getMonth() === month) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    datesList.push(`${yyyy}-${mm}-${dd}`);
+    date.setDate(date.getDate() + 1);
+  }
+  return datesList;
+}
+
+const MONTHS = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
 
 export default function ParentRekapPage() {
   const { user } = useAuth();
@@ -23,8 +43,13 @@ export default function ParentRekapPage() {
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [homeLogs, setHomeLogs] = useState<HomeLog[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
-  
-  const dates = getLastNDates(7);
+
+  // Month and Year filters
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [teacherName, setTeacherName] = useState('Wali Kelas');
+
+  const dates = getDatesInMonth(selectedYear, selectedMonth);
 
   useEffect(() => {
     setMounted(true);
@@ -32,6 +57,33 @@ export default function ParentRekapPage() {
       loadRekapData();
     }
   }, [user]);
+
+  useEffect(() => {
+    async function fetchTeacher() {
+      if (student?.classId) {
+        try {
+          const allClasses = await getClasses();
+          const studentClass = allClasses.find(c => c.id === student.classId);
+          if (studentClass?.teacherId) {
+            const res = await fetch(`/api/profile?id=${studentClass.teacherId}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.name) {
+                setTeacherName(data.name);
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error loading teacher profile:', e);
+        }
+      }
+      setTeacherName('Wali Kelas');
+    }
+    if (student) {
+      fetchTeacher();
+    }
+  }, [student]);
 
   async function loadRekapData() {
     if (!user?.studentId) return;
@@ -71,7 +123,12 @@ export default function ParentRekapPage() {
     if (!student) return;
     setIsDownloading(true);
     try {
-      await downloadPDF('parent-report', `Laporan-${student.nickname}-${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.pdf`);
+      const monthStr = MONTHS[selectedMonth];
+      await downloadPDF(
+        'parent-report',
+        `Laporan-${student.nickname}-${monthStr}-${selectedYear}.pdf`,
+        'landscape'
+      );
     } catch (err) {
       console.error(err);
       alert('Gagal mendownload PDF.');
@@ -106,9 +163,44 @@ export default function ParentRekapPage() {
     <div className="page-content">
       <div className="animate-fade-in-up">
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem', color: '#2C3E50', marginBottom: '4px' }}>
-          📊 Rekap {student.nickname}
+          📊 Rekap Bulanan {student.nickname}
         </h1>
-        <p style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '20px' }}>Laporan 7 hari terakhir</p>
+        <p style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '20px' }}>Laporan harian penuh per bulan</p>
+      </div>
+
+      {/* Filters Row */}
+      <div className="animate-fade-in-up delay-100" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+        gap: '12px',
+        marginBottom: '20px'
+      }}>
+        <div>
+          <label className="input-label">📅 Pilih Bulan</label>
+          <select
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(Number(e.target.value))}
+            className="input"
+            style={{ cursor: 'pointer' }}
+          >
+            {MONTHS.map((m, idx) => (
+              <option key={idx} value={idx}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="input-label">🗓️ Tahun</label>
+          <select
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
+            className="input"
+            style={{ cursor: 'pointer' }}
+          >
+            {[2025, 2026, 2027].map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Student Info */}
@@ -123,7 +215,7 @@ export default function ParentRekapPage() {
           </div>
           <div>
             <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem' }}>{student.name}</div>
-            <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Kelas A • Buku Penghubung 7 Hari</div>
+            <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Kelas A • Laporan Bulanan {MONTHS[selectedMonth]} {selectedYear}</div>
           </div>
         </div>
       </div>
@@ -142,8 +234,14 @@ export default function ParentRekapPage() {
             const schoolDone = log ? Object.values(log.schoolActivities).filter(Boolean).length : 0;
             const homeDone = homeLog ? Object.values(homeLog.homeActivities).filter(v => v === true || (typeof v === 'string' && v !== '')).length : 0;
 
+            // Only render days that are not in the future
+            const targetDate = new Date(date);
+            const todayDate = new Date();
+            todayDate.setHours(23, 59, 59, 999); // Allow today
+            if (targetDate > todayDate) return null;
+
             return (
-              <div key={date} className="card animate-fade-in-up" style={{ padding: '16px', animationDelay: `${(idx + 2) * 80}ms` }}>
+              <div key={date} className="card animate-fade-in-up" style={{ padding: '16px', animationDelay: `${(idx % 6) * 50}ms` }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span style={{
                     fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.85rem', color: '#2C3E50',
@@ -151,7 +249,7 @@ export default function ParentRekapPage() {
                     📅 {formatDateIndonesia(date)}
                   </span>
                   {!log && !homeLog && (
-                    <span className="badge badge-yellow">Belum Ada Data</span>
+                    <span className="badge badge-yellow" style={{ background: '#FEF9E7', color: '#D35400' }}>Belum Ada Data</span>
                   )}
                 </div>
 
@@ -231,7 +329,7 @@ export default function ParentRekapPage() {
           color: 'white',
           border: 'none',
           boxShadow: '0 4px 16px rgba(52,152,219,0.35)',
-          marginBottom: '20px',
+          marginBottom: '30px',
           fontFamily: 'Nunito, sans-serif',
           fontWeight: 700,
           fontSize: '1rem',
@@ -240,60 +338,103 @@ export default function ParentRekapPage() {
           cursor: 'pointer',
         }}
       >
-        {isDownloading ? '⏳ Mempersiapkan...' : '📥 Unduh Laporan PDF'}
+        {isDownloading ? '⏳ Mempersiapkan PDF Bulanan (Landscape)...' : '📥 Unduh Laporan PDF (Landscape)'}
       </button>
 
-      {/* Hidden PDF */}
+      {/* Hidden PDF (Landscape A4: 1123px width) */}
       <div id="parent-report" style={{
         position: 'fixed', left: '-9999px', top: 0,
-        width: '794px', background: 'white', padding: '40px',
+        width: '1123px', background: 'white', padding: '40px',
         fontFamily: 'Arial, sans-serif',
       }}>
         <div style={{ textAlign: 'center', borderBottom: '3px solid #3498DB', paddingBottom: '20px', marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '16pt', fontWeight: 'bold', color: '#1A5276', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
-          <h2 style={{ fontSize: '13pt', color: '#3498DB', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Orang Tua</h2>
-        </div>
-        <div style={{ marginBottom: '20px', padding: '12px', background: '#D6EAF8', borderRadius: '8px', fontSize: '11pt' }}>
-          <strong>Nama Siswa:</strong> {student.name} &nbsp;|&nbsp;
-          <strong>Kelas:</strong> A &nbsp;|&nbsp;
-          <strong>Periode:</strong> {formatDateShort(dates[0])} — {formatDateShort(dates[dates.length - 1])}
+          <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1A5276', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
+          <h2 style={{ fontSize: '14pt', color: '#3498DB', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan Anak</h2>
+          <p style={{ fontSize: '10pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
         </div>
 
-        {dates.map(date => {
-          const log = getLog(student.id, date);
-          const homeLog = getHome(student.id, date);
-          if (!log && !homeLog) return null;
-          return (
-            <div key={date} style={{ marginBottom: '20px', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ background: '#2980B9', color: 'white', padding: '8px 12px', fontWeight: 'bold', fontSize: '10pt' }}>
-                {formatDateIndonesia(date)}
-              </div>
-              <div style={{ padding: '12px', fontSize: '9pt' }}>
-                {log && (
-                  <div style={{ marginBottom: '8px' }}>
-                    <strong>Kegiatan Sekolah:</strong>{' '}
-                    {schoolActivities.filter(a => log.schoolActivities[a.id]).map(a => a.label).join(', ') || '—'}
-                    {log.teacherNote && <div style={{ marginTop: '4px', color: '#555' }}><em>Catatan Guru: {log.teacherNote}</em></div>}
-                  </div>
-                )}
-                {homeLog && (
-                  <div>
-                    <strong>Aktivitas Rumah:</strong>{' '}
-                    {homeActivities.filter(a => homeLog.homeActivities[a.id]).map(a => {
-                      const v = homeLog.homeActivities[a.id];
-                      return a.hasTime && typeof v === 'string' ? `${a.label} (${v})` : a.label;
-                    }).join(', ') || '—'}
-                    {homeLog.parentNote && <div style={{ marginTop: '4px', color: '#555' }}><em>Catatan Ortu: {homeLog.parentNote}</em></div>}
-                  </div>
-                )}
-              </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', padding: '14px', background: '#D6EAF8', borderRadius: '10px', fontSize: '10.5pt' }}>
+          <div>
+            <strong>Nama Siswa:</strong> {student.name}<br />
+            <strong>Avatar:</strong> {student.avatarEmoji}
+          </div>
+          <div>
+            <strong>Wali Murid:</strong> {user?.name}<br />
+            <strong>Kelas:</strong> Kelas A
+          </div>
+        </div>
+
+        {/* Chronological Day-by-Day Table inside PDF */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '30px' }}>
+          <thead>
+            <tr style={{ background: '#2980B9', color: 'white' }}>
+              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left', width: '160px' }}>Tanggal</th>
+              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Kegiatan Sekolah</th>
+              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Aktivitas Rumah</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dates.map(date => {
+              const log = getLog(student.id, date);
+              const homeLog = getHome(student.id, date);
+              if (!log && !homeLog) return null;
+
+              const schoolActsDone = schoolActivities
+                .filter(a => log?.schoolActivities?.[a.id])
+                .map(a => a.label)
+                .join(', ');
+
+              const homeActsDone = homeActivities
+                .filter(a => homeLog?.homeActivities?.[a.id])
+                .map(a => {
+                  const val = homeLog?.homeActivities?.[a.id];
+                  return a.hasTime && typeof val === 'string' ? `${a.label} (${val})` : a.label;
+                })
+                .join(', ');
+
+              return (
+                <tr key={date}>
+                  <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold' }}>
+                    {formatDateIndonesia(date)}
+                  </td>
+                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                    <div>{schoolActsDone || '—'}</div>
+                    {log?.teacherNote && (
+                      <div style={{ marginTop: '4px', fontSize: '7.5pt', color: '#7f8c8d', fontStyle: 'italic' }}>
+                        Catatan Guru: "{log.teacherNote}"
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                    <div>{homeActsDone || '—'}</div>
+                    {homeLog?.parentNote && (
+                      <div style={{ marginTop: '4px', fontSize: '7.5pt', color: '#7f8c8d', fontStyle: 'italic' }}>
+                        Catatan Anda: "{homeLog.parentNote}"
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Landscape Signatures Row */}
+        <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', padding: '0 80px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Mengetahui,</div>
+            <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
+              {teacherName}
             </div>
-          );
-        })}
-
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
-          <div><div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '160px', marginTop: '48px' }}>Wali Kelas</div></div>
-          <div><div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '160px', marginTop: '48px' }}>Orang Tua / Wali</div></div>
+            <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Wali Kelas</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Menyetujui,</div>
+            <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
+              {user?.name || 'Orang Tua / Wali'}
+            </div>
+            <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
+          </div>
         </div>
       </div>
     </div>
