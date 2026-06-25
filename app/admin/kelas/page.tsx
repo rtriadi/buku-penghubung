@@ -28,6 +28,8 @@ export default function AdminKelasPage() {
   // Form Fields
   const [name, setName] = useState('');
   const [teacherId, setTeacherId] = useState('');
+  const [searchTeacherOpen, setSearchTeacherOpen] = useState(false);
+  const [searchTeacherQuery, setSearchTeacherQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -65,6 +67,8 @@ export default function AdminKelasPage() {
     setEditingId(null);
     setName('');
     setTeacherId('');
+    setSearchTeacherOpen(false);
+    setSearchTeacherQuery('');
     setShowModal(true);
   }
 
@@ -72,6 +76,8 @@ export default function AdminKelasPage() {
     setEditingId(cls.id);
     setName(cls.name);
     setTeacherId(cls.teacherId);
+    setSearchTeacherOpen(false);
+    setSearchTeacherQuery('');
     setShowModal(true);
   }
 
@@ -301,20 +307,131 @@ export default function AdminKelasPage() {
                 />
               </div>
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">👩‍🏫 Guru Wali Kelas</label>
-                <select
-                  value={teacherId}
-                  onChange={e => setTeacherId(e.target.value)}
+                <div
+                  onClick={() => !saving && setSearchTeacherOpen(!searchTeacherOpen)}
                   className="input"
-                  disabled={saving}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: saving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: searchTeacherOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: searchTeacherOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="">-- Belum Ada Wali Kelas --</option>
-                  {teachers.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                    {(() => {
+                      const selectedTeacher = teachers.find(t => t.id === teacherId);
+                      return selectedTeacher 
+                        ? `👩‍🏫 ${selectedTeacher.name}` 
+                        : '-- Belum Ada Wali Kelas --';
+                    })()}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+
+                {searchTeacherOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => { setSearchTeacherOpen(false); setSearchTeacherQuery(''); }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 8px)',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      maxHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Cari nama guru..."
+                        value={searchTeacherQuery}
+                        onChange={e => setSearchTeacherQuery(e.target.value)}
+                        className="input"
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '0.85rem',
+                          borderRadius: '10px',
+                          border: '1.5px solid #E8ECF0',
+                          width: '100%',
+                        }}
+                        autoFocus
+                      />
+                      <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div
+                          onClick={() => {
+                            setTeacherId('');
+                            setSearchTeacherOpen(false);
+                            setSearchTeacherQuery('');
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#E74C3C',
+                            background: teacherId === '' ? '#FDEDEC' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                          className="student-option"
+                        >
+                          -- Belum Ada Wali Kelas --
+                        </div>
+                        {teachers
+                          .filter(t => t.name.toLowerCase().includes(searchTeacherQuery.toLowerCase()))
+                          .map(t => (
+                            <div
+                              key={t.id}
+                              onClick={() => {
+                                setTeacherId(t.id);
+                                setSearchTeacherOpen(false);
+                                setSearchTeacherQuery('');
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Nunito, sans-serif',
+                                fontWeight: 700,
+                                color: '#2C3E50',
+                                background: t.id === teacherId ? 'var(--bg-cream)' : 'transparent',
+                                transition: 'background 0.2s',
+                              }}
+                              className="student-option"
+                            >
+                              <span>👩‍🏫 {t.name}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

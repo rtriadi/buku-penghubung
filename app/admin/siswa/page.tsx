@@ -34,6 +34,8 @@ export default function AdminSiswaPage() {
   const [parentId, setParentId] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('🦁');
   const [birthdate, setBirthdate] = useState('2020-01-01');
+  const [searchParentOpen, setSearchParentOpen] = useState(false);
+  const [searchParentQuery, setSearchParentQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -78,6 +80,8 @@ export default function AdminSiswaPage() {
     setParentId('');
     setAvatarEmoji('🦁');
     setBirthdate('2020-01-01');
+    setSearchParentOpen(false);
+    setSearchParentQuery('');
     setShowModal(true);
   }
 
@@ -89,6 +93,8 @@ export default function AdminSiswaPage() {
     setParentId(student.parentId || '');
     setAvatarEmoji(student.avatarEmoji);
     setBirthdate(student.birthdate);
+    setSearchParentOpen(false);
+    setSearchParentQuery('');
     setShowModal(true);
   }
 
@@ -493,20 +499,131 @@ export default function AdminSiswaPage() {
                   </select>
                 </div>
 
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, position: 'relative' }}>
                   <label className="input-label">👨‍👩 Orang Tua / Wali</label>
-                  <select
-                    value={parentId}
-                    onChange={e => setParentId(e.target.value)}
+                  <div
+                    onClick={() => !saving && setSearchParentOpen(!searchParentOpen)}
                     className="input"
-                    disabled={saving}
-                    style={{ cursor: 'pointer' }}
+                    style={{
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: saving ? '#F8F9FA' : 'white',
+                      padding: '14px 16px',
+                      borderRadius: '14px',
+                      border: searchParentOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                      color: '#2C3E50',
+                      boxShadow: searchParentOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
                   >
-                    <option value="">-- Hubungkan Nanti --</option>
-                    {parents.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                      {(() => {
+                        const selectedParent = parents.find(p => p.id === parentId);
+                        return selectedParent 
+                          ? `👨‍👩 ${selectedParent.name}` 
+                          : '-- Hubungkan Nanti --';
+                      })()}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                  </div>
+
+                  {searchParentOpen && (
+                    <>
+                      <div 
+                        style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                        onClick={() => { setSearchParentOpen(false); setSearchParentQuery(''); }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 'calc(100% + 8px)',
+                        left: 0,
+                        right: 0,
+                        background: 'white',
+                        borderRadius: '16px',
+                        border: '1.5px solid #AED6F1',
+                        boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                        padding: '8px',
+                        zIndex: 120,
+                        maxHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}>
+                        <input
+                          type="text"
+                          placeholder="🔍 Cari nama wali..."
+                          value={searchParentQuery}
+                          onChange={e => setSearchParentQuery(e.target.value)}
+                          className="input"
+                          style={{
+                            padding: '8px 10px',
+                            fontSize: '0.85rem',
+                            borderRadius: '10px',
+                            border: '1.5px solid #E8ECF0',
+                            width: '100%',
+                          }}
+                          autoFocus
+                        />
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div
+                            onClick={() => {
+                              setParentId('');
+                              setSearchParentOpen(false);
+                              setSearchParentQuery('');
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.85rem',
+                              fontFamily: 'Nunito, sans-serif',
+                              fontWeight: 700,
+                              color: '#E74C3C',
+                              background: parentId === '' ? '#FDEDEC' : 'transparent',
+                              transition: 'background 0.2s',
+                            }}
+                            className="student-option"
+                          >
+                            -- Kosongkan / Hubungkan Nanti --
+                          </div>
+                          {parents
+                            .filter(p => p.name.toLowerCase().includes(searchParentQuery.toLowerCase()))
+                            .map(p => (
+                              <div
+                                key={p.id}
+                                onClick={() => {
+                                  setParentId(p.id);
+                                  setSearchParentOpen(false);
+                                  setSearchParentQuery('');
+                                }}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  fontSize: '0.85rem',
+                                  fontFamily: 'Nunito, sans-serif',
+                                  fontWeight: 700,
+                                  color: '#2C3E50',
+                                  background: p.id === parentId ? 'var(--bg-cream)' : 'transparent',
+                                  transition: 'background 0.2s',
+                                }}
+                                className="student-option"
+                              >
+                                <span>👨‍👩 {p.name}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

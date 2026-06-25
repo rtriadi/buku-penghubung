@@ -360,6 +360,10 @@ h1, h2, h3, h4, .display {
   transition: all 0.2s ease;
   outline: none;
 }
+.input:hover:not(:disabled):not(:focus) {
+  border-color: #BDC3C7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
 .input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1);

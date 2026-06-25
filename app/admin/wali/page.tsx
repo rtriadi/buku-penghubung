@@ -35,6 +35,8 @@ export default function AdminWaliPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(DEFAULT_PASSWORD);
   const [studentId, setStudentId] = useState('');
+  const [searchSelectOpen, setSearchSelectOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -72,6 +74,8 @@ export default function AdminWaliPage() {
     setEmail('');
     setPassword(DEFAULT_PASSWORD);
     setStudentId('');
+    setSearchSelectOpen(false);
+    setSearchQuery('');
     setShowModal(true);
   }
 
@@ -81,6 +85,8 @@ export default function AdminWaliPage() {
     setEmail(parent.email);
     setPassword(parent.password || DEFAULT_PASSWORD);
     setStudentId(parent.studentId || '');
+    setSearchSelectOpen(false);
+    setSearchQuery('');
     setShowModal(true);
   }
 
@@ -468,20 +474,132 @@ export default function AdminWaliPage() {
                 </div>
               )}
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">👧 Hubungkan ke Siswa</label>
-                <select
-                  value={studentId}
-                  onChange={e => setStudentId(e.target.value)}
+                <div
+                  onClick={() => !saving && setSearchSelectOpen(!searchSelectOpen)}
                   className="input"
-                  disabled={saving}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: saving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: searchSelectOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: searchSelectOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="">-- Pilih Siswa (Bisa dikosongkan) --</option>
-                  {students.map(s => (
-                    <option key={s.id} value={s.id}>{s.avatarEmoji} {s.name}</option>
-                  ))}
-                </select>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                    {(() => {
+                      const selectedStudent = students.find(s => s.id === studentId);
+                      return selectedStudent 
+                        ? `${selectedStudent.avatarEmoji || '🦁'} ${selectedStudent.name} (${selectedStudent.classId?.toUpperCase().replace('-', ' ')})` 
+                        : '-- Pilih Siswa (Bisa dikosongkan) --';
+                    })()}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+
+                {searchSelectOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => { setSearchSelectOpen(false); setSearchQuery(''); }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 8px)',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      maxHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Cari nama siswa..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="input"
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '0.85rem',
+                          borderRadius: '10px',
+                          border: '1.5px solid #E8ECF0',
+                          width: '100%',
+                        }}
+                        autoFocus
+                      />
+                      <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div
+                          onClick={() => {
+                            setStudentId('');
+                            setSearchSelectOpen(false);
+                            setSearchQuery('');
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#E74C3C',
+                            background: studentId === '' ? '#FDEDEC' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                          className="student-option"
+                        >
+                          -- Kosongkan / Lepas Hubungan Siswa --
+                        </div>
+                        {students
+                          .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .map(s => (
+                            <div
+                              key={s.id}
+                              onClick={() => {
+                                setStudentId(s.id);
+                                setSearchSelectOpen(false);
+                                setSearchQuery('');
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '0.85rem',
+                                fontFamily: 'Nunito, sans-serif',
+                                fontWeight: 700,
+                                color: '#2C3E50',
+                                background: s.id === studentId ? 'var(--bg-cream)' : 'transparent',
+                                transition: 'background 0.2s',
+                              }}
+                              className="student-option"
+                            >
+                              <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji || '🦁'}</span>
+                              <span>{s.name} ({s.classId?.toUpperCase().replace('-', ' ')})</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
