@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-25T13:46:00Z",
+  "title": "Design System: Buku Penghubung Online",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Islamic Green",
+        "canonical": "oklch(63% 0.17 142)",
+        "tonalRamp": [
+          "#0d381e",
+          "#13522c",
+          "#1a6d3b",
+          "#218849",
+          "#27ae60",
+          "#52be80",
+          "#a9dfbf",
+          "#d5f5e3"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Warm Amber",
+        "canonical": "oklch(70% 0.19 76)",
+        "tonalRamp": [
+          "#4a2f00",
+          "#704600",
+          "#996000",
+          "#c27a00",
+          "#f39c12",
+          "#f5b041",
+          "#f9d79b",
+          "#fdebd0"
+        ]
+      },
+      "bg-cream": {
+        "role": "neutral",
+        "displayName": "Cream Velvet",
+        "canonical": "oklch(98% 0.01 76)",
+        "tonalRamp": [
+          "#221f1a",
+          "#3e3b34",
+          "#5d5952",
+          "#7e7971",
+          "#a19b92",
+          "#c6bfb5",
+          "#ece5db",
+          "#fdfaf6"
+        ]
+      },
+      "text-dark": {
+        "role": "neutral",
+        "displayName": "Slate Blue Text",
+        "canonical": "oklch(28% 0.05 230)",
+        "tonalRamp": [
+          "#090d11",
+          "#111921",
+          "#1a2632",
+          "#223243",
+          "#2c3e50",
+          "#54677a",
+          "#8599ad",
+          "#cbd6e2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display / Title Large",
+        "purpose": "Nama sekolah pada header, judul halaman utama, dan angka statistik penting."
+      },
+      "body": {
+        "displayName": "Body Text",
+        "purpose": "Catatan guru/orang tua, detail aktivitas, formulir input."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 2px 8px rgba(0, 0, 0, 0.08)",
+        "purpose": "Digunakan pada kartu aktivitas dan kontainer informasi dalam keadaan diam."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 20px rgba(0, 0, 0, 0.12)",
+        "purpose": "Digunakan saat kartu atau tombol disentuh/diarahkan kursor untuk memberikan feedback tactile."
+      }
+    ],
+    "motion": [
+      {
+        "name": "float",
+        "value": "float 3s ease-in-out infinite",
+        "purpose": "Animasi mengambang lembut untuk dekorasi Islami dan ikon."
+      },
+      {
+        "name": "fadeInUp",
+        "value": "fadeInUp 0.5s ease-out forwards",
+        "purpose": "Animasi transisi halaman masuk dari bawah untuk menghadirkan kesan halus."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Batas peralihan lebar antara layout PWA mobile terpusat dengan layar penuh ponsel."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Tombol utama untuk aksi penting seperti simpan log atau login.",
+      "html": "<button class=\"ds-btn-primary\">Simpan Perubahan 💾</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; padding: 12px 24px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1rem; border-radius: 16px; cursor: pointer; box-shadow: 0 4px 16px rgba(39, 174, 96, 0.35); transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; } .ds-btn-primary:hover { box-shadow: 0 6px 24px rgba(39, 174, 96, 0.45); transform: translateY(-1px); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }"
+    },
+    {
+      "name": "Activity Log Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Kartu aktivitas harian yang dapat dipilih oleh guru atau orang tua.",
+      "html": "<div class=\"ds-activity-item checked\"><span class=\"ds-activity-emoji\">🕌</span><span class=\"ds-activity-label\">Sholat Dhuha</span><div class=\"ds-checkmark\">✓</div></div>",
+      "css": ".ds-activity-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 2px solid transparent; background: #F8F9FA; cursor: pointer; transition: all 0.2s ease; user-select: none; font-family: 'Poppins', sans-serif; color: #2c3e50; font-size: 0.95rem; } .ds-activity-item:hover { border-color: #2ecc71; background: #F0FBF4; } .ds-activity-item.checked { background: linear-gradient(135deg, #D5F5E3, #A9DFBF); border-color: #27ae60; box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25); font-weight: 600; } .ds-activity-item .ds-activity-emoji { font-size: 1.75rem; transition: transform 0.2s ease; } .ds-activity-item:hover .ds-activity-emoji { transform: scale(1.15); } .ds-checkmark { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #AEB6BF; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 0.8rem; font-weight: bold; } .ds-activity-item.checked .ds-checkmark { background: #27ae60; border-color: #27ae60; color: white; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Nurturing Garden (Taman Pengasuhan)",
+    "overview": "Buku Penghubung Online adalah cerminan dari sebuah taman pengasuhan yang hangat, Islami, dan penuh kasih sayang. Desain sistem ini dibuat khusus untuk memfasilitasi kolaborasi erat antara pihak sekolah (guru) dan keluarga (orang tua) dalam memantau tumbuh kembang serta pembiasaan karakter baik anak secara real-time. Antarmuka dirancang dengan pendekatan mobile-first untuk memudahkan akses cepat di tengah kesibukan harian.",
+    "keyCharacteristics": [
+      "Islamic Aesthetics: Motif geometris Islami halus dan nuansa hijau meneduhkan.",
+      "Warm Natural Palette: Latar belakang krem lembut yang ramah mata.",
+      "Tactile Interactions: Tombol melengkung lebar yang ramah sentuhan jempol.",
+      "Clear Structure: Kontras tulisan sangat tinggi demi keterbacaan yang maksimal."
+    ],
+    "rules": [
+      {
+        "name": "The Emerald Anchor Rule",
+        "body": "Warna hijau Islami (--primary) harus menjadi warna dominan yang memandu mata pengguna. Gunakan warna aksen seperti merah coral atau amber hanya untuk kontras informasi tertentu.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Condensed Rule",
+        "body": "Dilarang menggunakan font yang terlalu rapat atau mempersempit letter-spacing di bawah -0.02em pada judul display.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Semua kartu dan kontainer harus terlihat datar dan menyatu dengan halaman saat diam. Bayangan hanya menebal dan mengangkat kartu sebagai respon aktif terhadap interaksi pengguna (hover/focus).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do gunakan rasio kontras teks minimal 4.5:1 menggunakan warna teks utama #2C3E50 di atas latar belakang krem #FDFAF6.",
+      "Do pastikan target klik/ketuk pada tombol atau kartu minimal berukuran 44x44 piksel untuk mendukung aksesibilitas mobile yang nyaman.",
+      "Do gunakan emoji yang relevan dan ceria sebagai penanda visual yang cepat dikenali oleh guru dan orang tua.",
+      "Do pertahankan batas lebar kontainer maksimal 480px di desktop agar tampilan aplikasi PWA tetap konsisten seperti di ponsel."
+    ],
+    "donts": [
+      "Don't gunakan bayangan hitam pekat yang tebal atau efek kaca (glassmorphism) yang mencolok secara dekoratif karena merusak nuansa hangat alami sekolah.",
+      "Don't gunakan teks gradien atau dekorasi garis tepi tebal berwarna-warni di sisi kiri kartu (side-stripe borders > 1px) yang terkesan murahan.",
+      "Don't gunakan spasi yang terlalu padat antar elemen formulir di ponsel; selalu berikan ruang bernapas minimal 16px agar tidak membingungkan pengguna.",
+      "Don't hilangkan doa atau sapaan Islami yang hangat karena hal tersebut merupakan bagian penting dari kepribadian brand PAUD IT Darul Khairat."
+    ]
+  }
+}

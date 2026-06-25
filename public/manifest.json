@@ -1,0 +1,22 @@
+{
+  "name": "Buku Penghubung PAUD IT Darul Khairat",
+  "short_name": "BukuPenghubung",
+  "description": "Platform komunikasi digital guru dan orang tua PAUD IT Darul Khairat",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFAF6",
+  "theme_color": "#27AE60",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
