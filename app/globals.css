@@ -649,3 +649,7 @@ h1, h2, h3, h4, .display {
   padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
   border-top: 1.5px solid #F2F3F4;
 }
+
+.student-option:hover {
+  background-color: #F5F7FA !important;
+}

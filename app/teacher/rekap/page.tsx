@@ -68,8 +68,16 @@ export default function TeacherRekapPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [parentName, setParentName] = useState('Orang Tua / Wali');
 
+  // Select2 Search States
+  const [searchSelectOpen, setSearchSelectOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const dates = getDatesInMonth(selectedYear, selectedMonth);
   const student = students.find(s => s.id === selectedStudentId);
+
+  const filteredStudents = students.filter(s =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -178,18 +186,107 @@ export default function TeacherRekapPage() {
         gap: '12px',
         marginBottom: '20px'
       }}>
-        <div>
+        <div style={{ position: 'relative' }}>
           <label className="input-label">👧 Pilih Siswa</label>
-          <select
-            value={selectedStudentId}
-            onChange={e => setSelectedStudentId(e.target.value)}
+          <div
+            onClick={() => setSearchSelectOpen(!searchSelectOpen)}
             className="input"
-            style={{ cursor: 'pointer' }}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'white',
+              padding: '10px 12px',
+              borderRadius: '12px',
+              border: '1.5px solid #E8ECF0',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              color: '#2C3E50',
+            }}
           >
-            {students.map(s => (
-              <option key={s.id} value={s.id}>{s.avatarEmoji} {s.name}</option>
-            ))}
-          </select>
+            <span>{student ? `${student.avatarEmoji} ${student.name}` : 'Pilih Siswa'}</span>
+            <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+          </div>
+
+          {searchSelectOpen && (
+            <>
+              <div 
+                style={{ position: 'fixed', inset: 0, zIndex: 90 }} 
+                onClick={() => { setSearchSelectOpen(false); setSearchQuery(''); }}
+              />
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #E8ECF0',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                marginTop: '6px',
+                padding: '8px',
+                zIndex: 100,
+                maxHeight: '300px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Cari nama siswa..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="input"
+                  style={{
+                    padding: '8px 10px',
+                    fontSize: '0.85rem',
+                    borderRadius: '8px',
+                    border: '1.5px solid #E8ECF0',
+                    width: '100%',
+                  }}
+                  autoFocus
+                />
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map(s => (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedStudentId(s.id);
+                          setSearchSelectOpen(false);
+                          setSearchQuery('');
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: 700,
+                          color: '#2C3E50',
+                          background: s.id === selectedStudentId ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                        className="student-option"
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji}</span>
+                        <span>{s.name}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '12px', textAlign: 'center', color: '#AEB6BF', fontSize: '0.8rem' }}>
+                      Siswa tidak ditemukan 😕
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <div>
           <label className="input-label">📅 Pilih Bulan</label>
