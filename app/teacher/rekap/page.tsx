@@ -181,12 +181,12 @@ export default function TeacherRekapPage() {
 
       {/* Filter Row */}
       <div className="animate-fade-in-up delay-100" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: '12px',
         marginBottom: '20px'
       }}>
-        <div style={{ position: 'relative' }}>
+        <div style={{ flex: '2 1 240px', position: 'relative' }}>
           <label className="input-label">👧 Pilih Siswa</label>
           <div
             onClick={() => setSearchSelectOpen(!searchSelectOpen)}
@@ -206,8 +206,10 @@ export default function TeacherRekapPage() {
               color: '#2C3E50',
             }}
           >
-            <span>{student ? `${student.avatarEmoji} ${student.name}` : 'Pilih Siswa'}</span>
-            <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+              {student ? `${student.avatarEmoji} ${student.name}` : 'Pilih Siswa'}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
           </div>
 
           {searchSelectOpen && (
@@ -221,6 +223,7 @@ export default function TeacherRekapPage() {
                 top: '100%',
                 left: 0,
                 right: 0,
+                minWidth: '260px',
                 background: 'white',
                 borderRadius: '16px',
                 border: '1px solid #E8ECF0',
@@ -288,7 +291,7 @@ export default function TeacherRekapPage() {
             </>
           )}
         </div>
-        <div>
+        <div style={{ flex: '1 1 140px' }}>
           <label className="input-label">📅 Pilih Bulan</label>
           <select
             value={selectedMonth}
@@ -301,7 +304,7 @@ export default function TeacherRekapPage() {
             ))}
           </select>
         </div>
-        <div>
+        <div style={{ flex: '1 1 100px' }}>
           <label className="input-label">🗓️ Tahun</label>
           <select
             value={selectedYear}
