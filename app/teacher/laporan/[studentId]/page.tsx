@@ -236,52 +236,66 @@ export default function LaporanPage() {
         </div>
 
         {/* Activities by Category */}
-        {ACTIVITY_CATEGORIES.map(cat => {
-          const catActivities = schoolActivities.filter(a => a.category === cat.id);
-          if (catActivities.length === 0) return null;
+        {(() => {
+          const activeCategories = [...ACTIVITY_CATEGORIES];
+          schoolActivities.forEach(act => {
+            if (act.category && !activeCategories.some(c => c.id === act.category)) {
+              const label = act.category.charAt(0).toUpperCase() + act.category.slice(1).replace(/_/g, ' ');
+              activeCategories.push({
+                id: act.category,
+                label: label,
+                color: '#7F8C8D',
+              });
+            }
+          });
 
-          return (
-            <div key={cat.id} style={{ marginBottom: '24px' }}>
-              <div className="section-header">
-                <span className="category-pill" style={{
-                  background: cat.color + '20',
-                  color: cat.color,
-                }}>
-                  ● {cat.label}
-                </span>
-              </div>
+          return activeCategories.map(cat => {
+            const catActivities = schoolActivities.filter(a => a.category === cat.id);
+            if (catActivities.length === 0) return null;
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {catActivities.map(activity => (
-                  <button
-                    key={activity.id}
-                    onClick={() => toggleActivity(activity.id)}
-                    className={`activity-item ${activities[activity.id] ? 'checked' : ''}`}
-                    style={{ width: '100%', textAlign: 'left', border: 'none' }}
-                  >
-                    <span className="activity-emoji">{activity.emoji}</span>
-                    <span style={{
-                      fontFamily: 'Nunito, sans-serif',
-                      fontWeight: 700,
-                      fontSize: '0.95rem',
-                      color: activities[activity.id] ? '#1E8449' : '#2C3E50',
-                      flex: 1,
-                    }}>
-                      {activity.label}
-                    </span>
-                    <span className="checkmark">
-                      {activities[activity.id] && (
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <path d="M2 7L5.5 10.5L12 3.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </span>
-                  </button>
-                ))}
+            return (
+              <div key={cat.id} style={{ marginBottom: '24px' }}>
+                <div className="section-header">
+                  <span className="category-pill" style={{
+                    background: cat.color + '20',
+                    color: cat.color,
+                  }}>
+                    ● {cat.label}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {catActivities.map(activity => (
+                    <button
+                      key={activity.id}
+                      onClick={() => toggleActivity(activity.id)}
+                      className={`activity-item ${activities[activity.id] ? 'checked' : ''}`}
+                      style={{ width: '100%', textAlign: 'left', border: 'none' }}
+                    >
+                      <span className="activity-emoji">{activity.emoji}</span>
+                      <span style={{
+                        fontFamily: 'Nunito, sans-serif',
+                        fontWeight: 700,
+                        fontSize: '0.95rem',
+                        color: activities[activity.id] ? '#1E8449' : '#2C3E50',
+                        flex: 1,
+                      }}>
+                        {activity.label}
+                      </span>
+                      <span className="checkmark">
+                        {activities[activity.id] && (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2 7L5.5 10.5L12 3.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
 
         <div className="divider" />
 

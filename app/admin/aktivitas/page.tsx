@@ -34,6 +34,8 @@ export default function AdminAktivitasPage() {
   const [schoolEmoji, setSchoolEmoji] = useState('📝');
   const [schoolCategory, setSchoolCategory] = useState<ActivityCategory>('belajar');
   const [schoolOrder, setSchoolOrder] = useState(1);
+  const [searchCategoryOpen, setSearchCategoryOpen] = useState(false);
+  const [searchCategoryQuery, setSearchCategoryQuery] = useState('');
 
   // Home Form Fields
   const [homeLabel, setHomeLabel] = useState('');
@@ -78,6 +80,8 @@ export default function AdminAktivitasPage() {
     setSchoolEmoji('📝');
     setSchoolCategory('belajar');
     setSchoolOrder(schoolActs.length + 1);
+    setSearchCategoryOpen(false);
+    setSearchCategoryQuery('');
     setShowSchoolModal(true);
   }
 
@@ -87,6 +91,8 @@ export default function AdminAktivitasPage() {
     setSchoolEmoji(act.emoji || '📝');
     setSchoolCategory(act.category);
     setSchoolOrder(act.order || 1);
+    setSearchCategoryOpen(false);
+    setSearchCategoryQuery('');
     setShowSchoolModal(true);
   }
 
@@ -340,13 +346,55 @@ export default function AdminAktivitasPage() {
                       <span style={{ fontSize: '2.2rem' }}>{act.emoji}</span>
                       <div>
                         <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50' }}>{act.label}</h4>
-                        <span className="badge badge-green" style={{
-                          fontSize: '0.65rem',
-                          background: act.category === 'ibadah' ? '#E8F8EF' : act.category === 'makan' ? '#FEF9E7' : act.category === 'istirahat' ? '#EBF5FB' : '#F2F4F4',
-                          color: act.category === 'ibadah' ? '#1E8449' : act.category === 'makan' ? '#D35400' : act.category === 'istirahat' ? '#2980B9' : '#5D6D7E',
-                        }}>
-                          {act.category.toUpperCase()}
-                        </span>
+                        {(() => {
+                          const catId = act.category || 'belajar';
+                          const isIbadah = catId === 'ibadah';
+                          const isMakan = catId === 'makan';
+                          const isIstirahat = catId === 'istirahat';
+                          const isKehadiran = catId === 'kehadiran';
+                          const isBelajar = catId === 'belajar';
+
+                          let bg = '#F2F4F4';
+                          let fg = '#5D6D7E';
+                          let label = catId;
+
+                          if (isIbadah) {
+                            bg = '#E8F8EF';
+                            fg = '#1E8449';
+                            label = 'Ibadah & Karakter';
+                          } else if (isMakan) {
+                            bg = '#FEF9E7';
+                            fg = '#D35400';
+                            label = 'Kegiatan Makan';
+                          } else if (isIstirahat) {
+                            bg = '#EBF5FB';
+                            fg = '#2980B9';
+                            label = 'Istirahat / Tidur';
+                          } else if (isKehadiran) {
+                            bg = '#EAECEE';
+                            fg = '#2C3E50';
+                            label = 'Kehadiran';
+                          } else if (isBelajar) {
+                            bg = '#EBF5FB';
+                            fg = '#2980B9';
+                            label = 'Belajar & Bermain';
+                          } else {
+                            bg = '#F2F4F4';
+                            fg = '#5D6D7E';
+                            label = catId.charAt(0).toUpperCase() + catId.slice(1).replace(/_/g, ' ');
+                          }
+
+                          return (
+                            <span className="badge" style={{
+                              fontSize: '0.65rem',
+                              background: bg,
+                              color: fg,
+                              fontWeight: 800,
+                            }}>
+                              {label.toUpperCase()}
+                            </span>
+                          );
+                        })()}
                       </div>
                       <span style={{
                         marginLeft: 'auto',
@@ -581,21 +629,185 @@ export default function AdminAktivitasPage() {
                 </div>
               </div>
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">📂 Kategori Aktivitas</label>
-                <select
-                  value={schoolCategory}
-                  onChange={e => setSchoolCategory(e.target.value as ActivityCategory)}
+                <div
+                  onClick={() => !saving && setSearchCategoryOpen(!searchCategoryOpen)}
                   className="input"
-                  disabled={saving}
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: saving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: searchCategoryOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: searchCategoryOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="kehadiran">Kehadiran (Absensi)</option>
-                  <option value="ibadah">Ibadah & Karakter</option>
-                  <option value="makan">Kegiatan Makan</option>
-                  <option value="belajar">Belajar & Bermain</option>
-                  <option value="istirahat">Istirahat / Tidur</option>
-                </select>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                    {(() => {
+                      const DEFAULT_CATEGORIES = [
+                        { id: 'kehadiran', label: 'Kehadiran (Absensi)' },
+                        { id: 'ibadah', label: 'Ibadah & Karakter' },
+                        { id: 'makan', label: 'Kegiatan Makan' },
+                        { id: 'belajar', label: 'Belajar & Bermain' },
+                        { id: 'istirahat', label: 'Istirahat / Tidur' },
+                      ];
+                      const uniqueDbCategories = Array.from(new Set(schoolActs.map(act => act.category)))
+                        .filter(cat => cat && !DEFAULT_CATEGORIES.some(c => c.id === cat));
+                      const allCats = [
+                        ...DEFAULT_CATEGORIES,
+                        ...uniqueDbCategories.map(cat => ({
+                          id: cat,
+                          label: cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ')
+                        }))
+                      ];
+                      const selected = allCats.find(c => c.id === schoolCategory);
+                      return selected ? `📂 ${selected.label}` : `📂 ${schoolCategory}`;
+                    })()}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+
+                {searchCategoryOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => { setSearchCategoryOpen(false); setSearchCategoryQuery(''); }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 8px)',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      maxHeight: '220px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Cari atau tambah kategori..."
+                        value={searchCategoryQuery}
+                        onChange={e => setSearchCategoryQuery(e.target.value)}
+                        className="input"
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '0.85rem',
+                          borderRadius: '10px',
+                          border: '1.5px solid #E8ECF0',
+                          width: '100%',
+                        }}
+                        autoFocus
+                      />
+                      <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {(() => {
+                          const DEFAULT_CATEGORIES = [
+                            { id: 'kehadiran', label: 'Kehadiran (Absensi)' },
+                            { id: 'ibadah', label: 'Ibadah & Karakter' },
+                            { id: 'makan', label: 'Kegiatan Makan' },
+                            { id: 'belajar', label: 'Belajar & Bermain' },
+                            { id: 'istirahat', label: 'Istirahat / Tidur' },
+                          ];
+                          const uniqueDbCategories = Array.from(new Set(schoolActs.map(act => act.category)))
+                            .filter(cat => cat && !DEFAULT_CATEGORIES.some(c => c.id === cat));
+                          const allCats = [
+                            ...DEFAULT_CATEGORIES,
+                            ...uniqueDbCategories.map(cat => ({
+                              id: cat,
+                              label: cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ')
+                            }))
+                          ];
+
+                          const query = searchCategoryQuery.trim().toLowerCase();
+                          const filtered = allCats.filter(c => 
+                            c.label.toLowerCase().includes(query) || 
+                            c.id.toLowerCase().includes(query)
+                          );
+
+                          const hasExactMatch = allCats.some(c => 
+                            c.label.toLowerCase() === query || 
+                            c.id.toLowerCase() === query
+                          );
+
+                          return (
+                            <>
+                              {filtered.map(c => (
+                                <div
+                                  key={c.id}
+                                  onClick={() => {
+                                    setSchoolCategory(c.id);
+                                    setSearchCategoryOpen(false);
+                                    setSearchCategoryQuery('');
+                                  }}
+                                  style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'Nunito, sans-serif',
+                                    fontWeight: 700,
+                                    color: '#2C3E50',
+                                    background: c.id === schoolCategory ? 'var(--bg-cream)' : 'transparent',
+                                    transition: 'background 0.2s',
+                                  }}
+                                  className="student-option"
+                                >
+                                  <span>📂 {c.label}</span>
+                                </div>
+                              ))}
+                              
+                              {query && !hasExactMatch && (
+                                <div
+                                  onClick={() => {
+                                    const newId = query.replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+                                    const finalId = newId || `cat_${Date.now()}`;
+                                    setSchoolCategory(finalId);
+                                    setSearchCategoryOpen(false);
+                                    setSearchCategoryQuery('');
+                                  }}
+                                  style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'Nunito, sans-serif',
+                                    fontWeight: 800,
+                                    color: '#1E8449',
+                                    background: '#E8F8EF',
+                                    transition: 'background 0.2s',
+                                  }}
+                                  className="student-option"
+                                >
+                                  <span>➕ Tambah Kategori &quot;{searchCategoryQuery}&quot;</span>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

@@ -4,7 +4,7 @@ export type Role = 'teacher' | 'parent' | 'admin';
 
 export type HealthCondition = 'sehat' | 'kurang_sehat' | 'sakit';
 
-export type ActivityCategory = 'ibadah' | 'makan' | 'belajar' | 'istirahat' | 'kehadiran';
+export type ActivityCategory = string;
 
 export interface Student {
   id: string;

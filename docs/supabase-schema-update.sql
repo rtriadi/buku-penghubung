@@ -232,7 +232,7 @@ CREATE TRIGGER home_logs_updated_at BEFORE UPDATE ON home_logs FOR EACH ROW EXEC
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, name, role, email)
+  INSERT INTO public.profiles (id, name, role, email)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
@@ -240,10 +240,10 @@ BEGIN
     NEW.email
   )
   ON CONFLICT (id) DO UPDATE 
-  SET email = EXCLUDED.email, name = COALESCE(profiles.name, EXCLUDED.name);
+  SET email = EXCLUDED.email, name = COALESCE(public.profiles.name, EXCLUDED.name);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Gunakan CREATE OR REPLACE TRIGGER untuk mencegah error jika trigger sudah ada
 CREATE OR REPLACE TRIGGER on_auth_user_created
@@ -273,6 +273,7 @@ SET session_replication_role = 'origin';
 
 -- A. Masukkan data kelas default
 INSERT INTO classes (id, name) VALUES
+  ('kelas-kb', 'Kelas KB'),
   ('kelas-a', 'Kelas A (TK A)'),
   ('kelas-b', 'Kelas B (TK B)')
 ON CONFLICT (id) DO NOTHING;
