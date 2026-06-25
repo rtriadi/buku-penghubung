@@ -179,14 +179,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           gap: '10px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '36px', height: '36px', borderRadius: '50%',
-              background: '#F1C40F', color: '#1E8449',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: '900', fontSize: '1rem',
-            }}>
-              A
-            </div>
+            <img
+              src="/logo-darul-khairat.png"
+              alt="Logo Darul Khairat"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'white',
+                padding: '2px',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+                objectFit: 'contain',
+              }}
+            />
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {user.name}

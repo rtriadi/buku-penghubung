@@ -55,7 +55,14 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-cream)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '16px' }} className="animate-pulse-soft">🏡</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <img 
+              src="/logo-darul-khairat.png" 
+              alt="Logo Darul Khairat" 
+              style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+              className="animate-pulse-soft"
+            />
+          </div>
           <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: 'var(--accent-blue)' }}>Memuat...</p>
         </div>
       </div>
@@ -151,11 +158,19 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             </div>
             <div className="modal-body" style={{ textAlign: 'center', padding: '24px 20px' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                <img 
-                  src="/logo-darul-khairat.png" 
-                  alt="Logo Darul Khairat" 
-                  style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '16px', background: 'white', padding: '6px', border: '1px solid #E8ECF0' }}
-                />
+                <div style={{
+                  width: '70px',
+                  height: '70px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #D6EAF8, #2980B9)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2.5rem',
+                  boxShadow: '0 4px 12px rgba(41, 128, 185, 0.2)'
+                }}>
+                  👨‍👩
+                </div>
               </div>
               <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.15rem', color: '#2C3E50', marginBottom: '4px' }}>
                 {user.name}
