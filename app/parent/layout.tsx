@@ -98,7 +98,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
           <button
-            onClick={() => setShowProfileModal(true)}
+            onClick={() => { logout(); router.replace('/login'); }}
             style={{
               background: 'rgba(255,255,255,0.2)',
               border: 'none', borderRadius: '10px',
@@ -107,7 +107,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
               fontSize: '0.8rem', cursor: 'pointer',
             }}
           >
-            Profil
+            Keluar
           </button>
         </div>
       </header>

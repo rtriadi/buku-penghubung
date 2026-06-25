@@ -392,95 +392,152 @@ export default function TeacherRekapPage() {
           {/* Hidden PDF Template (Landscape A4: 1123px width) */}
           <div id="report-template" style={{
             position: 'fixed', left: '-9999px', top: 0,
-            width: '1123px', background: 'white', padding: '40px',
+            width: '1123px',
             fontFamily: 'Arial, sans-serif',
           }}>
-            <div style={{ textAlign: 'center', borderBottom: '3px solid #27AE60', paddingBottom: '20px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>🕌</div>
-              <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1E8449', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
-              <h2 style={{ fontSize: '14pt', color: '#27AE60', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan</h2>
-              <p style={{ fontSize: '10pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', padding: '14px', background: '#D5F5E3', borderRadius: '10px', fontSize: '10.5pt' }}>
+            {/* PAGE 1: School Activities */}
+            <div className="pdf-page" style={{
+              width: '1123px', height: '794px', background: 'white', padding: '40px',
+              boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+            }}>
               <div>
-                <strong>Nama Siswa:</strong> {student.name}<br />
-                <strong>Avatar Siswa:</strong> {student.avatarEmoji}
+                <div style={{ textAlign: 'center', borderBottom: '3px solid #27AE60', paddingBottom: '16px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                    <img 
+                      src="/logo-darul-khairat.png" 
+                      alt="Logo Darul Khairat" 
+                      style={{ width: '70px', height: '70px', objectFit: 'contain' }}
+                    />
+                  </div>
+                  <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1E8449', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
+                  <h2 style={{ fontSize: '13pt', color: '#27AE60', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan (Kegiatan Sekolah)</h2>
+                  <p style={{ fontSize: '9.5pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px', padding: '10px 14px', background: '#D5F5E3', borderRadius: '8px', fontSize: '10pt' }}>
+                  <div>
+                    <strong>Nama Siswa:</strong> {student.name}<br />
+                    <strong>Avatar Siswa:</strong> {student.avatarEmoji}
+                  </div>
+                  <div>
+                    <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}<br />
+                    <strong>Tanggal Lahir:</strong> {student.birthdate}
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '12pt', color: '#1E8449', marginBottom: '8px', borderBottom: '1.5px solid #27AE60', paddingBottom: '4px' }}>Kegiatan Sekolah</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7pt' }}>
+                  <thead>
+                    <tr style={{ background: '#27AE60', color: 'white' }}>
+                      <th style={{ padding: '6px 4px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Kegiatan</th>
+                      {dates.map(d => <th key={d} style={{ padding: '6px 1px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schoolActivities.map((act, idx) => (
+                      <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                        <td style={{ padding: '5px 4px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
+                        {dates.map(d => {
+                          const log = getLog(dailyLogs, student.id, d);
+                          const done = log?.schoolActivities?.[act.id] ?? false;
+                          return (
+                            <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#27AE60' : '#ddd', fontWeight: done ? 'bold' : 'normal' }}>
+                              {done ? '✓' : '—'}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div>
-                <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}<br />
-                <strong>Tanggal Lahir:</strong> {student.birthdate}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8pt', color: '#7f8c8d' }}>
+                <span>PAUD IT Darul Khairat</span>
+                <span>Halaman 1 dari 2</span>
               </div>
             </div>
 
-            <h3 style={{ fontSize: '13pt', color: '#1E8449', marginBottom: '10px', borderBottom: '1.5px solid #27AE60', paddingBottom: '4px' }}>Kegiatan Sekolah</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '24px' }}>
-              <thead>
-                <tr style={{ background: '#27AE60', color: 'white' }}>
-                  <th style={{ padding: '8px 6px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Kegiatan</th>
-                  {dates.map(d => <th key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {schoolActivities.map((act, idx) => (
-                  <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                    <td style={{ padding: '8px 6px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
-                    {dates.map(d => {
-                      const log = getLog(dailyLogs, student.id, d);
-                      const done = log?.schoolActivities?.[act.id] ?? false;
-                      return (
-                        <td key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#27AE60' : '#ddd', fontWeight: done ? 'bold' : 'normal' }}>
-                          {done ? '✓' : '—'}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <h3 style={{ fontSize: '13pt', color: '#3498DB', marginBottom: '10px', borderBottom: '1.5px solid #3498DB', paddingBottom: '4px' }}>Aktivitas Rumah</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7.5pt', marginBottom: '28px' }}>
-              <thead>
-                <tr style={{ background: '#3498DB', color: 'white' }}>
-                  <th style={{ padding: '8px 6px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Aktivitas</th>
-                  {dates.map(d => <th key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {homeActivities.map((act, idx) => (
-                  <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                    <td style={{ padding: '8px 6px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
-                    {dates.map(d => {
-                      const log = getHomeLog(homeLogs, student.id, d);
-                      const val = log?.homeActivities?.[act.id];
-                      const done = val === true || (typeof val === 'string' && val.length > 0);
-                      return (
-                        <td key={d} style={{ padding: '8px 2px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#2980B9' : '#ddd', fontSize: act.hasTime && typeof val === 'string' && val ? '6.5pt' : '7.5pt' }}>
-                          {act.hasTime && typeof val === 'string' && val ? val : done ? '✓' : '—'}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Landscape Signatures Row */}
-            <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', padding: '0 80px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Mengetahui,</div>
-                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
-                  {user?.name || 'Wali Kelas'}
+            {/* PAGE 2: Home Activities & Signatures */}
+            <div className="pdf-page" style={{
+              width: '1123px', height: '794px', background: 'white', padding: '40px',
+              boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ textAlign: 'center', borderBottom: '3px solid #3498DB', paddingBottom: '16px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                    <img 
+                      src="/logo-darul-khairat.png" 
+                      alt="Logo Darul Khairat" 
+                      style={{ width: '70px', height: '70px', objectFit: 'contain' }}
+                    />
+                  </div>
+                  <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1A5276', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
+                  <h2 style={{ fontSize: '13pt', color: '#3498DB', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan (Aktivitas Rumah)</h2>
+                  <p style={{ fontSize: '9.5pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
                 </div>
-                <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Wali Kelas</div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px', padding: '10px 14px', background: '#D6EAF8', borderRadius: '8px', fontSize: '10pt' }}>
+                  <div>
+                    <strong>Nama Siswa:</strong> {student.name}<br />
+                    <strong>Avatar Siswa:</strong> {student.avatarEmoji}
+                  </div>
+                  <div>
+                    <strong>Wali Murid:</strong> {parentName}<br />
+                    <strong>Kelas:</strong> {user?.classId?.toUpperCase().replace('-', ' ')}
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '12pt', color: '#3498DB', marginBottom: '8px', borderBottom: '1.5px solid #3498DB', paddingBottom: '4px' }}>Aktivitas Rumah</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7pt', marginBottom: '20px' }}>
+                  <thead>
+                    <tr style={{ background: '#3498DB', color: 'white' }}>
+                      <th style={{ padding: '6px 4px', textAlign: 'left', border: '1px solid #ddd', width: '140px' }}>Aktivitas</th>
+                      {dates.map(d => <th key={d} style={{ padding: '6px 1px', textAlign: 'center', border: '1px solid #ddd' }}>{d.split('-')[2]}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {homeActivities.map((act, idx) => (
+                      <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                        <td style={{ padding: '5px 4px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
+                        {dates.map(d => {
+                          const log = getHomeLog(homeLogs, student.id, d);
+                          const val = log?.homeActivities?.[act.id];
+                          const done = val === true || (typeof val === 'string' && val.length > 0);
+                          return (
+                            <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#2980B9' : '#ddd', fontSize: act.hasTime && typeof val === 'string' && val ? '6pt' : '7pt' }}>
+                              {act.hasTime && typeof val === 'string' && val ? val : done ? '✓' : '—'}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Menyetujui,</div>
-                <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
-                  {parentName}
+
+              <div>
+                {/* Landscape Signatures Row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 80px', marginBottom: '15px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '9pt', color: '#555', marginBottom: '40px' }}>Mengetahui,</div>
+                    <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '200px', fontWeight: 'bold', fontSize: '9.5pt', color: '#2C3E50' }}>
+                      {user?.name || 'Wali Kelas'}
+                    </div>
+                    <div style={{ fontSize: '8pt', color: '#7f8c8d' }}>Wali Kelas</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '9pt', color: '#555', marginBottom: '40px' }}>Menyetujui,</div>
+                    <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '200px', fontWeight: 'bold', fontSize: '9.5pt', color: '#2C3E50' }}>
+                      {parentName}
+                    </div>
+                    <div style={{ fontSize: '8pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8pt', color: '#7f8c8d' }}>
+                  <span>PAUD IT Darul Khairat</span>
+                  <span>Halaman 2 dari 2</span>
+                </div>
               </div>
             </div>
           </div>

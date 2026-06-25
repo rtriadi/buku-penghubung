@@ -64,7 +64,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             </div>
           </div>
           <button
-            onClick={() => setShowProfileModal(true)}
+            onClick={() => { logout(); router.replace('/login'); }}
             style={{
               background: 'rgba(255,255,255,0.2)',
               border: 'none',
@@ -77,7 +77,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
               cursor: 'pointer',
             }}
           >
-            Profil
+            Keluar
           </button>
         </div>
       </header>

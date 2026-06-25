@@ -51,6 +51,28 @@ export default function ParentRekapPage() {
 
   const dates = getDatesInMonth(selectedYear, selectedMonth);
 
+  // Filter to dates that have data
+  const activeDates = student ? dates.filter(d => {
+    const log = dailyLogs.find(l => l.studentId === student.id && l.date === d);
+    const homeLog = homeLogs.find(l => l.studentId === student.id && l.date === d);
+    return log || homeLog;
+  }) : [];
+
+  const pdfPages: string[][] = [];
+  if (activeDates.length > 0) {
+    // Page 1 gets up to 8 items
+    pdfPages.push(activeDates.slice(0, 8));
+    // Subsequent pages get 12 items each
+    let index = 8;
+    while (index < activeDates.length) {
+      pdfPages.push(activeDates.slice(index, index + 12));
+      index += 12;
+    }
+  } else {
+    // Fallback if no logs
+    pdfPages.push([]);
+  }
+
   useEffect(() => {
     setMounted(true);
     if (user?.studentId) {
@@ -344,98 +366,149 @@ export default function ParentRekapPage() {
       {/* Hidden PDF (Landscape A4: 1123px width) */}
       <div id="parent-report" style={{
         position: 'fixed', left: '-9999px', top: 0,
-        width: '1123px', background: 'white', padding: '40px',
+        width: '1123px',
         fontFamily: 'Arial, sans-serif',
       }}>
-        <div style={{ textAlign: 'center', borderBottom: '3px solid #3498DB', paddingBottom: '20px', marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1A5276', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
-          <h2 style={{ fontSize: '14pt', color: '#3498DB', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan Anak</h2>
-          <p style={{ fontSize: '10pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
-        </div>
+        {pdfPages.map((pageDates, pageIdx) => (
+          <div key={pageIdx} className="pdf-page" style={{
+            width: '1123px', height: '794px', background: 'white', padding: '40px',
+            boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+          }}>
+            <div>
+              {pageIdx === 0 ? (
+                <>
+                  <div style={{ textAlign: 'center', borderBottom: '3px solid #3498DB', paddingBottom: '16px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                      <img 
+                        src="/logo-darul-khairat.png" 
+                        alt="Logo Darul Khairat" 
+                        style={{ width: '70px', height: '70px', objectFit: 'contain' }}
+                      />
+                    </div>
+                    <h1 style={{ fontSize: '18pt', fontWeight: 'bold', color: '#1A5276', margin: 0 }}>PAUD Islam Terpadu Darul Khairat</h1>
+                    <h2 style={{ fontSize: '13pt', color: '#3498DB', margin: '4px 0 0' }}>Buku Penghubung Online — Laporan Bulanan Anak</h2>
+                    <p style={{ fontSize: '9.5pt', color: '#7f8c8d', margin: '4px 0 0' }}>Periode: {MONTHS[selectedMonth]} {selectedYear}</p>
+                  </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', padding: '14px', background: '#D6EAF8', borderRadius: '10px', fontSize: '10.5pt' }}>
-          <div>
-            <strong>Nama Siswa:</strong> {student.name}<br />
-            <strong>Avatar:</strong> {student.avatarEmoji}
-          </div>
-          <div>
-            <strong>Wali Murid:</strong> {user?.name}<br />
-            <strong>Kelas:</strong> Kelas A
-          </div>
-        </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px', padding: '10px 14px', background: '#D6EAF8', borderRadius: '8px', fontSize: '10pt' }}>
+                    <div>
+                      <strong>Nama Siswa:</strong> {student.name}<br />
+                      <strong>Avatar:</strong> {student.avatarEmoji}
+                    </div>
+                    <div>
+                      <strong>Wali Murid:</strong> {user?.name}<br />
+                      <strong>Kelas:</strong> Kelas A
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #3498DB', paddingBottom: '8px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img 
+                      src="/logo-darul-khairat.png" 
+                      alt="Logo" 
+                      style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                    />
+                    <span style={{ fontFamily: 'Arial', fontWeight: 'bold', fontSize: '11pt', color: '#1A5276' }}>
+                      Laporan Bulanan {student.name} ({MONTHS[selectedMonth]} {selectedYear})
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '9pt', color: '#7f8c8d' }}>Kelas A</span>
+                </div>
+              )}
 
-        {/* Chronological Day-by-Day Table inside PDF */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt', marginBottom: '30px' }}>
-          <thead>
-            <tr style={{ background: '#2980B9', color: 'white' }}>
-              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left', width: '160px' }}>Tanggal</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Kegiatan Sekolah</th>
-              <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Aktivitas Rumah</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dates.map(date => {
-              const log = getLog(student.id, date);
-              const homeLog = getHome(student.id, date);
-              if (!log && !homeLog) return null;
+              {pageDates.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8pt' }}>
+                  <thead>
+                    <tr style={{ background: '#2980B9', color: 'white' }}>
+                      <th style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'left', width: '160px' }}>Tanggal</th>
+                      <th style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'left' }}>Kegiatan Sekolah</th>
+                      <th style={{ padding: '6px 8px', border: '1px solid #ddd', textAlign: 'left' }}>Aktivitas Rumah</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageDates.map(date => {
+                      const log = getLog(student.id, date);
+                      const homeLog = getHome(student.id, date);
 
-              const schoolActsDone = schoolActivities
-                .filter(a => log?.schoolActivities?.[a.id])
-                .map(a => a.label)
-                .join(', ');
+                      const schoolActsDone = schoolActivities
+                        .filter(a => log?.schoolActivities?.[a.id])
+                        .map(a => a.label)
+                        .join(', ');
 
-              const homeActsDone = homeActivities
-                .filter(a => homeLog?.homeActivities?.[a.id])
-                .map(a => {
-                  const val = homeLog?.homeActivities?.[a.id];
-                  return a.hasTime && typeof val === 'string' ? `${a.label} (${val})` : a.label;
-                })
-                .join(', ');
+                      const homeActsDone = homeActivities
+                        .filter(a => homeLog?.homeActivities?.[a.id])
+                        .map(a => {
+                          const val = homeLog?.homeActivities?.[a.id];
+                          return a.hasTime && typeof val === 'string' ? `${a.label} (${val})` : a.label;
+                        })
+                        .join(', ');
 
-              return (
-                <tr key={date}>
-                  <td style={{ padding: '8px', border: '1px solid #ddd', fontWeight: 'bold' }}>
-                    {formatDateIndonesia(date)}
-                  </td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <div>{schoolActsDone || '—'}</div>
-                    {log?.teacherNote && (
-                      <div style={{ marginTop: '4px', fontSize: '7.5pt', color: '#7f8c8d', fontStyle: 'italic' }}>
-                        Catatan Guru: "{log.teacherNote}"
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                    <div>{homeActsDone || '—'}</div>
-                    {homeLog?.parentNote && (
-                      <div style={{ marginTop: '4px', fontSize: '7.5pt', color: '#7f8c8d', fontStyle: 'italic' }}>
-                        Catatan Anda: "{homeLog.parentNote}"
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {/* Landscape Signatures Row */}
-        <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', padding: '0 80px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Mengetahui,</div>
-            <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
-              {teacherName}
+                      return (
+                        <tr key={date}>
+                          <td style={{ padding: '5px 8px', border: '1px solid #ddd', fontWeight: 'bold' }}>
+                            {formatDateIndonesia(date)}
+                          </td>
+                          <td style={{ padding: '5px 8px', border: '1px solid #ddd' }}>
+                            <div>{schoolActsDone || '—'}</div>
+                            {log?.teacherNote && (
+                              <div style={{ marginTop: '3px', fontSize: '7pt', color: '#7f8c8d', fontStyle: 'italic' }}>
+                                Catatan Guru: "{log.teacherNote}"
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ padding: '5px 8px', border: '1px solid #ddd' }}>
+                            <div>{homeActsDone || '—'}</div>
+                            {homeLog?.parentNote && (
+                              <div style={{ marginTop: '3px', fontSize: '7pt', color: '#7f8c8d', fontStyle: 'italic' }}>
+                                Catatan Orang Tua: "{homeLog.parentNote}"
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#AEB6BF', fontSize: '10pt', border: '1px dashed #ccc', borderRadius: '8px' }}>
+                  Belum ada data aktivitas yang dicatat untuk bulan ini.
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Wali Kelas</div>
+
+            {pageIdx === pdfPages.length - 1 ? (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 80px', marginTop: '20px', marginBottom: '15px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '9pt', color: '#555', marginBottom: '40px' }}>Mengetahui,</div>
+                    <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '200px', fontWeight: 'bold', fontSize: '9.5pt', color: '#2C3E50' }}>
+                      {teacherName}
+                    </div>
+                    <div style={{ fontSize: '8pt', color: '#7f8c8d' }}>Wali Kelas</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '9pt', color: '#555', marginBottom: '40px' }}>Menyetujui,</div>
+                    <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '200px', fontWeight: 'bold', fontSize: '9.5pt', color: '#2C3E50' }}>
+                      {user?.name || 'Orang Tua / Wali'}
+                    </div>
+                    <div style={{ fontSize: '8pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8pt', color: '#7f8c8d' }}>
+                  <span>PAUD IT Darul Khairat</span>
+                  <span>Halaman {pageIdx + 1} dari {pdfPages.length}</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8pt', color: '#7f8c8d' }}>
+                <span>PAUD IT Darul Khairat</span>
+                <span>Halaman {pageIdx + 1} dari {pdfPages.length}</span>
+              </div>
+            )}
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '10pt', color: '#555', marginBottom: '50px' }}>Menyetujui,</div>
-            <div style={{ borderTop: '1px solid #333', paddingTop: '4px', width: '220px', fontWeight: 'bold', fontSize: '10.5pt', color: '#2C3E50' }}>
-              {user?.name || 'Orang Tua / Wali'}
-            </div>
-            <div style={{ fontSize: '8.5pt', color: '#7f8c8d' }}>Orang Tua / Wali</div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
