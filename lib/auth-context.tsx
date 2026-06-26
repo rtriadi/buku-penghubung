@@ -124,6 +124,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN' && session?.user) {
         const u = await fetchProfile(session.user.id, session.user.email!);
         if (u) {
+          const expectedRole = sessionStorage.getItem('expected_role');
+          if (expectedRole && u.role !== expectedRole) {
+            // Mismatch: Clear expected_role, sign out, and do not set user state
+            sessionStorage.removeItem('expected_role');
+            await supabase.auth.signOut();
+            return;
+          }
+          // Clear it since it has been verified
+          sessionStorage.removeItem('expected_role');
           setUser(u);
           localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
           sessionStorage.setItem('buku_penghubung_session_active', 'true');
@@ -131,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         localStorage.removeItem('buku_penghubung_user');
+        sessionStorage.removeItem('buku_penghubung_remember_me');
         sessionStorage.removeItem('buku_penghubung_session_active');
       }
     });
@@ -159,9 +169,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function login(email: string, password: string, rememberMe: boolean = false, expectedRole?: Role): Promise<{ success: boolean; error?: string }> {
     try {
       setIsLoading(true);
+      if (expectedRole) {
+        sessionStorage.setItem('expected_role', expectedRole);
+      }
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        sessionStorage.removeItem('expected_role');
         setIsLoading(false);
         // User-friendly error messages
         if (error.message.includes('Invalid login credentials')) {
@@ -171,18 +185,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (!data.user) {
+        sessionStorage.removeItem('expected_role');
         setIsLoading(false);
         return { success: false, error: 'User tidak ditemukan.' };
       }
 
       const u = await fetchProfile(data.user.id, data.user.email!);
       if (!u) {
+        sessionStorage.removeItem('expected_role');
         setIsLoading(false);
         await supabase.auth.signOut();
         return { success: false, error: 'Profil akun Anda belum dikonfigurasi di database. Hubungi admin.' };
       }
 
       if (expectedRole && u.role !== expectedRole) {
+        sessionStorage.removeItem('expected_role');
         setIsLoading(false);
         await supabase.auth.signOut();
         const roleNames = {
@@ -197,6 +214,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       }
 
+      // Clear it since it has been verified and set
+      sessionStorage.removeItem('expected_role');
+
       // Save rememberMe configuration
       localStorage.setItem('buku_penghubung_remember_me', rememberMe ? 'true' : 'false');
       sessionStorage.setItem('buku_penghubung_session_active', 'true');
@@ -206,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       return { success: true };
     } catch (err: any) {
+      sessionStorage.removeItem('expected_role');
       setIsLoading(false);
       return { success: false, error: err.message || 'Terjadi kesalahan sistem.' };
     }
