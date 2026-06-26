@@ -10,11 +10,42 @@ interface Props {
   userId: string;
   onClose: () => void;
   onRead: (id: string) => void;
+  role?: string;
 }
 
-export default function AnnouncementPopup({ announcements, userId, onClose, onRead }: Props) {
+export default function AnnouncementPopup({ announcements, userId, onClose, onRead, role }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [marking, setMarking] = useState(false);
+
+  const getHeaderGradient = () => {
+    if (role === 'principal') {
+      return 'linear-gradient(135deg, #5B2C6F 0%, #8E44AD 100%)';
+    }
+    if (role === 'parent') {
+      return 'linear-gradient(135deg, #1A5276 0%, #2980B9 100%)';
+    }
+    return 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)';
+  };
+
+  const getButtonGradient = () => {
+    if (role === 'principal') {
+      return 'linear-gradient(135deg, #5B2C6F 0%, #8E44AD 100%)';
+    }
+    if (role === 'parent') {
+      return 'linear-gradient(135deg, #1A5276 0%, #2980B9 100%)';
+    }
+    return 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)';
+  };
+
+  const getButtonShadow = () => {
+    if (role === 'principal') {
+      return '0 4px 12px rgba(142, 68, 173, 0.25)';
+    }
+    if (role === 'parent') {
+      return '0 4px 12px rgba(41, 128, 185, 0.25)';
+    }
+    return '0 4px 12px rgba(39, 174, 96, 0.25)';
+  };
 
   if (announcements.length === 0) return null;
 
@@ -69,7 +100,7 @@ export default function AnnouncementPopup({ announcements, userId, onClose, onRe
       >
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+          background: getHeaderGradient(),
           padding: '24px 20px 20px',
           color: 'white',
           textAlign: 'center',
@@ -175,13 +206,13 @@ export default function AnnouncementPopup({ announcements, userId, onClose, onRe
               padding: '11px',
               borderRadius: '14px',
               border: 'none',
-              background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+              background: getButtonGradient(),
               color: 'white',
               fontWeight: 800,
               fontSize: '0.85rem',
               cursor: marking ? 'not-allowed' : 'pointer',
               fontFamily: 'Nunito, sans-serif',
-              boxShadow: '0 4px 12px rgba(39,174,96,0.25)',
+              boxShadow: getButtonShadow(),
               transition: 'all 0.2s',
               opacity: marking ? 0.7 : 1,
             }}

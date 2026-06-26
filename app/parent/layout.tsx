@@ -326,6 +326,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
           userId={user.id}
           onClose={() => setShowAnnouncementPopup(false)}
           onRead={(id) => setReadIds(prev => [...prev, id])}
+          role={user.role}
         />
       )}
     </div>

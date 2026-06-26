@@ -8,14 +8,35 @@ interface Props {
   announcement: Announcement;
   isRead: boolean;
   onMarkRead: (id: string) => void;
+  role?: string;
 }
 
-export default function AnnouncementCard({ announcement, isRead, onMarkRead }: Props) {
+export default function AnnouncementCard({ announcement, isRead, onMarkRead, role }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const getButtonGradient = () => {
+    if (role === 'principal') {
+      return 'linear-gradient(135deg, #5B2C6F 0%, #8E44AD 100%)';
+    }
+    if (role === 'parent') {
+      return 'linear-gradient(135deg, #1A5276 0%, #2980B9 100%)';
+    }
+    return 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)';
+  };
+
+  const getButtonShadow = () => {
+    if (role === 'principal') {
+      return '0 2px 8px rgba(142, 68, 173, 0.25)';
+    }
+    if (role === 'parent') {
+      return '0 2px 8px rgba(41, 128, 185, 0.25)';
+    }
+    return '0 2px 8px rgba(39, 174, 96, 0.25)';
   };
 
   return (
@@ -119,7 +140,7 @@ export default function AnnouncementCard({ announcement, isRead, onMarkRead }: P
           <button
             onClick={() => onMarkRead(announcement.id)}
             style={{
-              background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+              background: getButtonGradient(),
               border: 'none',
               borderRadius: '10px',
               padding: '7px 14px',
@@ -128,7 +149,7 @@ export default function AnnouncementCard({ announcement, isRead, onMarkRead }: P
               color: 'white',
               cursor: 'pointer',
               fontFamily: 'Nunito, sans-serif',
-              boxShadow: '0 2px 8px rgba(39, 174, 96, 0.25)',
+              boxShadow: getButtonShadow(),
               transition: 'all 0.2s',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}

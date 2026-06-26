@@ -67,6 +67,17 @@ export default function PengumumanPage() {
   const unreadAnnouncements = announcements.filter(a => !readIds.includes(a.id));
   const readAnnouncements = announcements.filter(a => readIds.includes(a.id));
 
+  const getHeaderGradient = () => {
+    if (!user) return 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)';
+    if (user.role === 'principal') {
+      return 'linear-gradient(135deg, #5B2C6F 0%, #8E44AD 50%, #BB8FCE 100%)';
+    }
+    if (user.role === 'parent') {
+      return 'linear-gradient(135deg, #1A5276 0%, #2980B9 50%, #3498DB 100%)';
+    }
+    return 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)';
+  };
+
   if (isLoading || loading) {
     return (
       <div style={{
@@ -84,6 +95,10 @@ export default function PengumumanPage() {
     );
   }
 
+  const roleColor = user?.role === 'principal' ? '#8E44AD' : user?.role === 'parent' ? '#2980B9' : '#1E8449';
+  const roleBorder = user?.role === 'principal' ? 'rgba(142, 68, 173, 0.4)' : user?.role === 'parent' ? 'rgba(41, 128, 185, 0.4)' : 'rgba(39, 174, 96, 0.4)';
+  const roleBg = user?.role === 'principal' ? 'rgba(142, 68, 173, 0.08)' : user?.role === 'parent' ? 'rgba(41, 128, 185, 0.08)' : 'rgba(39, 174, 96, 0.08)';
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -92,11 +107,16 @@ export default function PengumumanPage() {
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+        background: getHeaderGradient(),
         padding: '24px 20px 28px',
         color: 'white',
         textAlign: 'center',
         position: 'relative',
+        boxShadow: user?.role === 'principal' 
+          ? '0 4px 20px rgba(142, 68, 173, 0.2)' 
+          : user?.role === 'parent' 
+          ? '0 4px 20px rgba(41, 128, 185, 0.2)' 
+          : '0 4px 20px rgba(39, 174, 96, 0.2)',
       }}>
         {/* Back button */}
         <button
@@ -163,9 +183,9 @@ export default function PengumumanPage() {
                 width: '100%',
                 padding: '12px',
                 borderRadius: '14px',
-                border: '1.5px solid rgba(39, 174, 96, 0.4)',
-                background: 'rgba(39, 174, 96, 0.08)',
-                color: '#1E8449',
+                border: `1.5px solid ${roleBorder}`,
+                background: roleBg,
+                color: roleColor,
                 fontWeight: 800,
                 fontSize: '0.85rem',
                 cursor: markingAll ? 'not-allowed' : 'pointer',
@@ -197,6 +217,7 @@ export default function PengumumanPage() {
                 announcement={a}
                 isRead={false}
                 onMarkRead={handleMarkRead}
+                role={user?.role}
               />
             ))}
           </div>
@@ -221,6 +242,7 @@ export default function PengumumanPage() {
                 announcement={a}
                 isRead={true}
                 onMarkRead={handleMarkRead}
+                role={user?.role}
               />
             ))}
           </div>

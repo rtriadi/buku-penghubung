@@ -365,18 +365,34 @@ export default function PrincipalRekapPage() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     background: 'white',
-                    padding: '10px 12px',
+                    padding: '8px 12px',
                     borderRadius: '12px',
                     border: searchSelectOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
                     fontFamily: 'Nunito, sans-serif',
                     fontWeight: 700,
                     fontSize: '0.9rem',
                     color: '#2C3E50',
+                    minHeight: '46px',
                   }}
                 >
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
-                    {student ? `${student.avatarEmoji} ${student.name}${student.status === 'alumni' ? ' (Alumni)' : ''}` : 'Pilih Siswa'}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
+                    {student ? (
+                      <>
+                        <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{student.avatarEmoji}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', lineHeight: 1.2, textAlign: 'left' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50' }}>
+                            {student.nickname}
+                            {student.status === 'alumni' && <span style={{ fontSize: '0.65rem', background: '#FDEDEC', color: '#C0392B', padding: '1px 4px', borderRadius: '4px', marginLeft: '6px', fontWeight: 'bold' }}>Alumni</span>}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#7f8c8d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {student.name}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <span>Pilih Siswa</span>
+                    )}
+                  </div>
                   <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
                 </div>
 
@@ -470,7 +486,7 @@ export default function PrincipalRekapPage() {
                                 setSearchQuery('');
                               }}
                               style={{
-                                padding: '10px 12px',
+                                padding: '8px 12px',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -484,10 +500,17 @@ export default function PrincipalRekapPage() {
                                 transition: 'background 0.2s',
                               }}
                             >
-                              <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji}</span>
-                              <span>{s.name}</span>
+                              <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{s.avatarEmoji}</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', lineHeight: 1.2, textAlign: 'left', flex: 1 }}>
+                                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50' }}>
+                                  {s.nickname}
+                                </span>
+                                <span style={{ fontSize: '0.7rem', color: '#7f8c8d', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {s.name}
+                                </span>
+                              </div>
                               {s.status === 'alumni' && (
-                                <span style={{ fontSize: '0.7rem', background: '#FDEDEC', color: '#C0392B', padding: '2px 6px', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold' }}>Alumni</span>
+                                <span style={{ fontSize: '0.65rem', background: '#FDEDEC', color: '#C0392B', padding: '1px 4px', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold', flexShrink: 0 }}>Alumni</span>
                               )}
                             </div>
                           ))

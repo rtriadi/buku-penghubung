@@ -8,10 +8,11 @@ import type { Announcement } from '@/lib/types';
 interface Props {
   initialData?: Partial<Announcement>;
   onSubmit: (data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => Promise<void>;
+  onCancel: () => void;
   submitLabel?: string;
 }
 
-export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 'Simpan Pengumuman' }: Props) {
+export default function AnnouncementForm({ initialData, onSubmit, onCancel, submitLabel = 'Simpan Pengumuman' }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title || '');
   const [startDate, setStartDate] = useState(initialData?.startDate || '');
@@ -87,8 +88,6 @@ export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 
     setLoading(true);
     try {
       await onSubmit({ title: title.trim(), content: rawContent, startDate, endDate, isActive });
-      router.push('/admin/pengumuman');
-      router.refresh();
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan');
     } finally {
@@ -123,13 +122,9 @@ export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 
   return (
     <form onSubmit={handleSubmit} style={{ fontFamily: 'Nunito, sans-serif' }}>
       <div style={{
-        background: 'white',
-        borderRadius: '20px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-        padding: '28px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '22px',
+        gap: '20px',
       }}>
 
         {/* Judul */}
@@ -277,7 +272,7 @@ export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
           <button
             type="button"
-            onClick={() => router.push('/admin/pengumuman')}
+            onClick={onCancel}
             style={{
               padding: '12px 24px',
               borderRadius: '14px',

@@ -2,9 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { getAllAnnouncements, deleteAnnouncement, updateAnnouncement } from '@/lib/db';
+import { getAllAnnouncements, deleteAnnouncement, updateAnnouncement, createAnnouncement } from '@/lib/db';
 import type { Announcement } from '@/lib/types';
+import AnnouncementForm from './_components/AnnouncementForm';
 
 export default function AdminPengumumanPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -12,6 +12,11 @@ export default function AdminPengumumanPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -57,6 +62,28 @@ export default function AdminPengumumanPage() {
     load();
   };
 
+  const openAddModal = () => {
+    setEditingId(null);
+    setSelectedAnnouncement(null);
+    setShowModal(true);
+  };
+
+  const openEditModal = (a: Announcement) => {
+    setEditingId(a.id);
+    setSelectedAnnouncement(a);
+    setShowModal(true);
+  };
+
+  const handleFormSubmit = async (data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
+    if (editingId) {
+      await updateAnnouncement(editingId, data);
+    } else {
+      await createAnnouncement(data);
+    }
+    setShowModal(false);
+    load();
+  };
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
@@ -78,29 +105,30 @@ export default function AdminPengumumanPage() {
             Kelola pengumuman yang ditampilkan ke seluruh pengguna
           </p>
         </div>
-        <Link
-          href="/admin/pengumuman/baru"
+        <button
+          onClick={openAddModal}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            padding: '12px 18px',
+            padding: '12px 20px',
             background: 'linear-gradient(135deg, #27AE60, #2ECC71)',
             color: 'white',
             borderRadius: '12px',
             fontWeight: 800,
             fontSize: '0.85rem',
-            textDecoration: 'none',
+            border: 'none',
             boxShadow: '0 4px 12px rgba(39,174,96,0.2)',
             whiteSpace: 'nowrap',
             width: isMobile ? '100%' : 'auto',
+            cursor: 'pointer',
             transition: 'all 0.2s',
             textAlign: 'center',
           }}
         >
           ➕ Buat Pengumuman Baru
-        </Link>
+        </button>
       </div>
 
       {/* Content */}
@@ -113,9 +141,9 @@ export default function AdminPengumumanPage() {
         <div style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', background: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', border: '1px solid #E8ECF0' }}>
           <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
           <p style={{ fontWeight: 700, color: '#5D6D7E', fontFamily: 'Nunito, sans-serif', marginBottom: '8px' }}>Belum ada pengumuman</p>
-          <Link href="/admin/pengumuman/baru" style={{ color: '#27AE60', fontWeight: 800, textDecoration: 'none', fontSize: '0.9rem' }}>
+          <button onClick={openAddModal} style={{ background: 'none', border: 'none', color: '#27AE60', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'underline' }}>
             + Buat pengumuman pertama
-          </Link>
+          </button>
         </div>
       ) : isMobile ? (
         /* Mobile layout: stack of cards */
@@ -200,8 +228,8 @@ export default function AdminPengumumanPage() {
                     {togglingId === a.id ? '⏳' : a.isActive ? '🔴 Nonaktif' : '🟢 Aktifkan'}
                   </button>
 
-                  <Link
-                    href={`/admin/pengumuman/${a.id}/edit`}
+                  <button
+                    onClick={() => openEditModal(a)}
                     style={{
                       flex: 1,
                       minWidth: '70px',
@@ -214,11 +242,10 @@ export default function AdminPengumumanPage() {
                       color: '#5D6D7E',
                       fontWeight: 700,
                       textAlign: 'center',
-                      textDecoration: 'none',
                     }}
                   >
                     ✏️ Edit
-                  </Link>
+                  </button>
 
                   <button
                     onClick={() => handleDelete(a.id, a.title)}
@@ -317,8 +344,8 @@ export default function AdminPengumumanPage() {
                           >
                             {togglingId === a.id ? '⏳' : a.isActive ? '🔴 Nonaktifkan' : '🟢 Aktifkan'}
                           </button>
-                          <Link
-                            href={`/admin/pengumuman/${a.id}/edit`}
+                          <button
+                            onClick={() => openEditModal(a)}
                             style={{
                               background: '#F8F9FA',
                               border: '1px solid #E8ECF0',
@@ -328,12 +355,10 @@ export default function AdminPengumumanPage() {
                               fontSize: '0.8rem',
                               color: '#2C3E50',
                               fontWeight: 700,
-                              textDecoration: 'none',
-                              display: 'inline-block',
                             }}
                           >
                             ✏️ Edit
-                          </Link>
+                          </button>
                           <button
                             onClick={() => handleDelete(a.id, a.title)}
                             disabled={deletingId === a.id}
@@ -357,6 +382,42 @@ export default function AdminPengumumanPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah/Edit */}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            padding: '28px',
+            width: '100%',
+            maxWidth: '600px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }}>
+            <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 950, fontSize: '1.25rem', color: '#2C3E50', margin: '0 0 20px 0' }}>
+              {editingId ? '✏️ Edit Pengumuman' : '📢 Buat Pengumuman Baru'}
+            </h3>
+            <AnnouncementForm
+              initialData={selectedAnnouncement || {}}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setShowModal(false)}
+              submitLabel={editingId ? 'Simpan Perubahan' : 'Buat Pengumuman'}
+            />
           </div>
         </div>
       )}

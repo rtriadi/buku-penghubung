@@ -230,6 +230,7 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
           userId={user.id}
           onClose={() => setShowAnnouncementPopup(false)}
           onRead={(id) => setReadIds(prev => [...prev, id])}
+          role={user.role}
         />
       )}
     </div>
