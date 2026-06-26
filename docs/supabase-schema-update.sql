@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS students (
   parent_id UUID, -- Akan ditambahkan FK di bagian akhir
   avatar_emoji TEXT DEFAULT '🦁',
   birthdate DATE NOT NULL DEFAULT '2020-01-01',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'alumni')),
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS school_activities (
   label TEXT NOT NULL,
   emoji TEXT DEFAULT '📝',
   category TEXT DEFAULT 'belajar',
+  has_time BOOLEAN DEFAULT false NOT NULL,
   "order" INT DEFAULT 0,
   is_active BOOLEAN DEFAULT true NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
@@ -289,6 +291,7 @@ SET session_replication_role = 'origin';
 
 -- A. Masukkan data kelas default
 INSERT INTO classes (id, name) VALUES
+  ('kelas-toddler', 'Kelas Toddler'),
   ('kelas-kb', 'Kelas KB'),
   ('kelas-a', 'Kelas A (TK A)'),
   ('kelas-b', 'Kelas B (TK B)')

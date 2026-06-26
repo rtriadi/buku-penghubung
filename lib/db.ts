@@ -259,6 +259,25 @@ export async function resetPassword(userId: string, newPassword: string = DEFAUL
   return newPassword;
 }
 
+export async function promoteToPrincipal(userId: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/admin/set-principal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Gagal menetapkan kepala sekolah.');
+    }
+    return true;
+  } catch (err: any) {
+    console.error('promoteToPrincipal error:', err);
+    throw err;
+  }
+}
+
 // --- Students ---
 export async function getStudents(): Promise<Student[]> {
   try {

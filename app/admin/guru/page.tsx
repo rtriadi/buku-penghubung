@@ -10,6 +10,7 @@ import {
   deleteUser,
   resetPassword,
   generateEmailFromName,
+  promoteToPrincipal,
   DEFAULT_PASSWORD
 } from '@/lib/db';
 import type { User, AccountCredentials, ClassInfo } from '@/lib/types';
@@ -31,6 +32,8 @@ export default function AdminGuruPage() {
   
   // Generated credentials state
   const [creds, setCreds] = useState<AccountCredentials | null>(null);
+
+  const [currentPrincipal, setCurrentPrincipal] = useState<User | null>(null);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -58,6 +61,10 @@ export default function AdminGuruPage() {
         getClasses()
       ]);
       setTeachers(us.filter(u => u.role === 'teacher'));
+      
+      const principal = us.find(u => u.role === 'principal');
+      setCurrentPrincipal(principal || null);
+
       setClasses(cls);
     } catch (err) {
       console.error('Error refreshing list:', err);
@@ -158,6 +165,29 @@ export default function AdminGuruPage() {
     }
   }
 
+  async function handleSetPrincipal() {
+    if (!editingId) return;
+    const teacherToPromote = teachers.find(t => t.id === editingId);
+    if (!teacherToPromote) return;
+
+    const confirmMsg = `Apakah Anda yakin ingin menjadikan ${teacherToPromote.name} sebagai Kepala Sekolah? Kepala sekolah yang menjabat saat ini (jika ada) akan diturunkan menjadi Guru biasa.`;
+    
+    if (confirm(confirmMsg)) {
+      try {
+        setSaving(true);
+        await promoteToPrincipal(editingId);
+        alert(`Berhasil menetapkan ${teacherToPromote.name} sebagai Kepala Sekolah!`);
+        setShowModal(false);
+        await refreshList();
+      } catch (err: any) {
+        console.error('Error promoting to principal:', err);
+        alert(err.message || 'Gagal menetapkan kepala sekolah.');
+      } finally {
+        setSaving(false);
+      }
+    }
+  }
+
   return (
     <>
       <div className="animate-fade-in-up">
@@ -194,6 +224,47 @@ export default function AdminGuruPage() {
         </button>
       </div>
 
+      {/* Current Principal Info Card */}
+      {currentPrincipal ? (
+        <div style={{
+          background: '#FAF5FF',
+          border: '1.5px solid #F3E5F5',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 4px 12px rgba(142,68,173,0.05)',
+        }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#8E44AD', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', fontFamily: 'Nunito, sans-serif' }}>
+              🎓 Kepala Sekolah Saat Ini
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#2C3E50' }}>
+              {currentPrincipal.name}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#7F8C8D' }}>
+              {currentPrincipal.email}
+            </div>
+          </div>
+          <span style={{ fontSize: '2rem' }}>🎓</span>
+        </div>
+      ) : (
+        <div style={{
+          background: '#FDEDEC',
+          border: '1.5px solid #FADBD8',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          color: '#C0392B',
+          fontSize: '0.85rem',
+          fontWeight: 700
+        }}>
+          ⚠️ Belum ada Kepala Sekolah yang ditetapkan. Silakan edit salah satu guru untuk menjadikannya Kepala Sekolah.
+        </div>
+      )}
+
       {/* Loading state */}
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#1E8449', fontFamily: 'Nunito, sans-serif' }}>
@@ -221,7 +292,7 @@ export default function AdminGuruPage() {
                       padding: '3px 8px',
                       borderRadius: '6px',
                     }}>
-                      {teacher.classId ? teacher.classId.toUpperCase() : 'Belum Ada Kelas'}
+                      {teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ada Kelas'}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#7f8c8d', fontFamily: 'monospace' }}>
@@ -324,7 +395,7 @@ export default function AdminGuruPage() {
                           padding: '4px 10px',
                           borderRadius: '8px',
                         }}>
-                          {teacher.classId ? teacher.classId.toUpperCase() : 'Belum Ditugaskan'}
+                          {teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ditugaskan'}
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
@@ -581,7 +652,39 @@ export default function AdminGuruPage() {
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              {editingId && (
+                <div style={{
+                  marginTop: '16px',
+                  borderTop: '1px solid #F0F2F5',
+                  paddingTop: '16px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={handleSetPrincipal}
+                    disabled={saving}
+                    style={{
+                      background: 'linear-gradient(135deg, #7D3C98, #8E44AD)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 16px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(142,68,173,0.2)'
+                    }}
+                  >
+                    🎓 Jadikan Kepala Sekolah
+                  </button>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

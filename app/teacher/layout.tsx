@@ -59,7 +59,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 {SCHOOL_NAME.split(' ').slice(0, 3).join(' ')}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
-                {user.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} • {getGreeting()}, Bu {user.name.split(' ')[0]}! 👋
+                {user.className || (user.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')} • {getGreeting()}, Bu {user.name.split(' ')[0]}! 👋
               </div>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 {user.name}
               </h2>
               <p style={{ fontSize: '0.78rem', color: '#27AE60', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
-                👩‍🏫 {user.role === 'teacher' ? (user.classId ? `Guru ${user.classId.toUpperCase().replace('-', ' ')}` : 'Belum Ada Tugas Kelas') : user.role}
+                👩‍🏫 {user.role === 'teacher' ? (user.className ? `Guru ${user.className}` : (user.classId ? `Guru ${user.classId.toUpperCase().replace('-', ' ')}` : 'Belum Ada Tugas Kelas')) : user.role}
               </p>
               <div style={{ background: '#F8F9FA', borderRadius: '12px', padding: '12px 14px', textAlign: 'left', marginBottom: '20px', border: '1px solid #F0F2F5' }}>
                 <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '2px' }}>📧 Email Akun</div>

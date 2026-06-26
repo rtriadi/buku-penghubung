@@ -74,6 +74,7 @@ export interface User {
   password?: string; // stored for mock auth (never do this in real app!)
   studentId?: string;
   classId?: string;
+  className?: string;
   createdAt?: string;
 }
 

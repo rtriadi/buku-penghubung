@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import {
   getUsers,
   getStudents,
+  getClasses,
   createUser,
   updateUser,
   deleteUser,
@@ -12,12 +13,13 @@ import {
   resetPassword,
   DEFAULT_PASSWORD
 } from '@/lib/db';
-import type { User, Student, AccountCredentials } from '@/lib/types';
+import type { User, Student, AccountCredentials, ClassInfo } from '@/lib/types';
 
 export default function AdminWaliPage() {
   const [mounted, setMounted] = useState(false);
   const [parents, setParents] = useState<User[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,12 +55,14 @@ export default function AdminWaliPage() {
   async function refreshList() {
     setLoading(true);
     try {
-      const [us, st] = await Promise.all([
+      const [us, st, cls] = await Promise.all([
         getUsers(),
-        getStudents()
+        getStudents(),
+        getClasses()
       ]);
       setParents(us.filter(u => u.role === 'parent'));
       setStudents(st);
+      setClasses(cls);
     } catch (err) {
       console.error('Error refreshing list:', err);
     } finally {
@@ -590,7 +594,7 @@ export default function AdminWaliPage() {
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji || '🦁'}</span>
-                                  <span>{s.name} ({s.classId?.toUpperCase().replace('-', ' ')})</span>
+                                  <span>{s.name} ({classes.find(c => c.id === s.classId)?.name || s.classId?.toUpperCase().replace('-', ' ')})</span>
                                 </div>
                                 <input
                                   type="checkbox"

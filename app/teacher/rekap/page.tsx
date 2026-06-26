@@ -180,7 +180,7 @@ export default function TeacherRekapPage() {
           📊 Rekap Bulanan Siswa
         </h1>
         <p style={{ fontSize: '0.85rem', color: '#7f8c8d', marginBottom: '20px' }}>
-          Laporan aktivitas kelas {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} per bulan
+          Laporan aktivitas kelas {user?.className || (user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')} per bulan
         </p>
       </div>
 
@@ -367,7 +367,7 @@ export default function TeacherRekapPage() {
               <div>
                 <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem' }}>{student.name}</div>
                 <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
-                  Kelas {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} • Periode: {MONTHS[selectedMonth]} {selectedYear}
+                  Kelas {user?.className || (user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')} • Periode: {MONTHS[selectedMonth]} {selectedYear}
                 </div>
               </div>
             </div>
@@ -554,7 +554,7 @@ export default function TeacherRekapPage() {
                     <strong>Avatar Siswa:</strong> {student.avatarEmoji}
                   </div>
                   <div>
-                    <strong>Kelas:</strong> {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'}<br />
+                    <strong>Kelas:</strong> {user?.className || (user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')}<br />
                     <strong>Tanggal Lahir:</strong> {student.birthdate}
                   </div>
                 </div>
@@ -618,7 +618,7 @@ export default function TeacherRekapPage() {
                   </div>
                   <div>
                     <strong>Wali Murid:</strong> {parentName}<br />
-                    <strong>Kelas:</strong> {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'}
+                    <strong>Kelas:</strong> {user?.className || (user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')}
                   </div>
                 </div>
 

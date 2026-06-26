@@ -199,7 +199,7 @@ export default function TeacherDashboard() {
           color: '#2C3E50',
           marginBottom: '4px',
         }}>
-          {user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas'} 📚
+          {user?.className || (user?.classId ? user.classId.toUpperCase().replace('-', ' ') : 'Belum Ada Kelas')} 📚
         </h1>
         <p style={{ fontSize: '0.85rem', color: '#7f8c8d' }}>
           📅 {formatDateIndonesia(today)}
