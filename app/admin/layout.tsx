@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f4f6f9',
+        background: 'var(--bg-cream)',
         fontFamily: 'Nunito, sans-serif',
       }}>
         <div style={{ textAlign: 'center' }}>
@@ -90,7 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      background: '#f4f6f9',
+      background: 'var(--bg-cream)',
       fontFamily: 'Nunito, sans-serif',
     }}>
       {/* Backdrop for mobile drawer */}
@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside style={{
         width: '260px',
-        background: '#1E8449', // Islamic Green Primary
+        background: 'var(--role-admin-dark)', // Islamic Green Primary
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
@@ -366,7 +366,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }}>
             {/* Header with Islamic Green Gradient */}
             <div style={{
-              background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+              background: 'linear-gradient(135deg, var(--role-admin-dark) 0%, var(--role-admin) 100%)',
               padding: '24px',
               color: 'white',
               position: 'relative',
@@ -622,13 +622,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     padding: '12px',
                     borderRadius: '12px',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+                    background: 'linear-gradient(135deg, var(--role-admin-dark) 0%, var(--role-admin) 100%)',
                     color: 'white',
                     fontWeight: 700,
                     fontSize: '0.9rem',
                     cursor: profileLoading ? 'not-allowed' : 'pointer',
                     fontFamily: 'Nunito, sans-serif',
-                    boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)',
+                    boxShadow: '0 4px 12px rgba(30, 132, 73, 0.2)',
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
