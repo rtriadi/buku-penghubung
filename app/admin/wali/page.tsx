@@ -144,9 +144,20 @@ export default function AdminWaliPage() {
 
       await refreshList();
       setShowModal(false);
+      if (!editingId) {
+        setShowCredsModal(true);
+      }
     } catch (err: any) {
       console.error('Error saving parent:', err);
-      alert(err.message || 'Gagal mendaftarkan wali baru.');
+      let errMsg = 'Gagal mendaftarkan wali baru.';
+      if (err instanceof Error) {
+        errMsg = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        errMsg = err.message || JSON.stringify(err);
+      } else if (typeof err === 'string') {
+        errMsg = err;
+      }
+      alert(errMsg);
     } finally {
       setSaving(false);
     }

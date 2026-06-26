@@ -1,6 +1,6 @@
-// app/api/admin/create-user/route.ts
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { fetch as undiciFetch } from 'undici';
 
 export async function POST(req: Request) {
   try {
@@ -16,11 +16,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize the admin client
+    // Initialize the admin client with undici fetch to bypass Next.js global fetch patch
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
+      },
+      global: {
+        fetch: undiciFetch as any,
       },
     });
 
@@ -33,7 +36,11 @@ export async function POST(req: Request) {
     });
 
     if (authError) {
-      return NextResponse.json({ error: authError.message }, { status: 400 });
+      let errMsg = authError.message;
+      if (errMsg === '{}' || !errMsg) {
+        errMsg = `Gagal membuat akun: Terjadi masalah database di Supabase Auth (kemungkinan email '${email}' dalam status bermasalah/orphaned di auth.identities atau indeks email database bermasalah). Silakan gunakan email lain atau reindex tabel auth.users di Supabase.`;
+      }
+      return NextResponse.json({ error: errMsg }, { status: 400 });
     }
 
     const userId = authData.user.id;

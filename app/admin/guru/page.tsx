@@ -130,7 +130,15 @@ export default function AdminGuruPage() {
       }
     } catch (err: any) {
       console.error('Error saving teacher:', err);
-      alert(err.message || 'Gagal mendaftarkan guru baru.');
+      let errMsg = 'Gagal mendaftarkan guru baru.';
+      if (err instanceof Error) {
+        errMsg = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        errMsg = err.message || JSON.stringify(err);
+      } else if (typeof err === 'string') {
+        errMsg = err;
+      }
+      alert(errMsg);
     } finally {
       setSaving(false);
     }
