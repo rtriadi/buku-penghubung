@@ -25,8 +25,15 @@ Aplikasi Buku Penghubung dapat diakses melalui browser di HP, Tablet, maupun Lap
 2. Di halaman login:
    - Masukkan **Email Login** Anda yang telah terdaftar.
    - Masukkan **Password** Anda.
+   - Centang opsi **Ingat akun saya di perangkat ini** jika Anda ingin tetap masuk dan tidak perlu mengulang proses login setiap kali membuka aplikasi di perangkat yang sama.
    - Klik tombol **Masuk 🚀**
 3. Aplikasi akan mendeteksi peran Anda secara otomatis (Admin, Guru, Wali, atau Kepala Sekolah) dan mengarahkan Anda ke dashboard yang sesuai.
+
+### 📲 Instalasi Aplikasi (PWA - Progressive Web App):
+Aplikasi ini mendukung fitur PWA, artinya Anda dapat memasang aplikasi ini langsung di layar utama (home screen) HP atau laptop Anda layaknya aplikasi dari app store/play store:
+* **Menggunakan Tombol di Halaman Login**: Saat membuka halaman login pada browser yang mendukung, klik tombol **📲 Pasang Aplikasi di HP Anda** untuk memunculkan konfirmasi instalasi.
+* **Menggunakan Menu Browser**: Alternatif lainnya, klik ikon titik tiga di browser HP Anda dan pilih **Tambahkan ke Layar Utama** (Add to Home Screen), atau klik ikon instalasi di bagian kanan address bar jika menggunakan laptop.
+* Setelah terinstal, aplikasi dapat dibuka secara instan dari layar utama perangkat Anda dengan tampilan penuh (tanpa bilah alamat browser).
 
 ---
 
