@@ -7,9 +7,10 @@ import { supabase } from './supabase';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string, rememberMe?: boolean, expectedRole?: Role) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -140,7 +141,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  async function login(email: string, password: string, rememberMe: boolean = false): Promise<{ success: boolean; error?: string }> {
+  async function refreshUser() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const u = await fetchProfile(session.user.id, session.user.email!);
+        if (u) {
+          setUser(u);
+          localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
+        }
+      }
+    } catch (err) {
+      console.error('Error refreshing user profile:', err);
+    }
+  }
+
+  async function login(email: string, password: string, rememberMe: boolean = false, expectedRole?: Role): Promise<{ success: boolean; error?: string }> {
     try {
       setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -164,6 +180,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         await supabase.auth.signOut();
         return { success: false, error: 'Profil akun Anda belum dikonfigurasi di database. Hubungi admin.' };
+      }
+
+      if (expectedRole && u.role !== expectedRole) {
+        setIsLoading(false);
+        await supabase.auth.signOut();
+        const roleNames = {
+          admin: 'Admin',
+          teacher: 'Guru',
+          parent: 'Orang Tua',
+          principal: 'Kepala Sekolah',
+        };
+        return {
+          success: false,
+          error: `Akun Anda terdaftar sebagai ${roleNames[u.role] || u.role}, tidak cocok dengan pilihan masuk Anda.`,
+        };
       }
 
       // Save rememberMe configuration
@@ -194,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

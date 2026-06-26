@@ -59,10 +59,14 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (!role) {
+      setError('Silakan pilih peran (role) Anda terlebih dahulu.');
+      return;
+    }
     setIsLoading(true);
     setError('');
     
-    const result = await login(email, password, rememberMe);
+    const result = await login(email, password, rememberMe, role);
     if (!result.success) {
       setError(result.error || 'Login gagal');
       setIsLoading(false);
