@@ -7,7 +7,7 @@ import { supabase } from './supabase';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -49,30 +49,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // 1. Check active session on mount
+    // 1. Register PWA Service Worker
+    let cleanUpLoadListener: (() => void) | undefined;
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      const registerSW = () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
+          .catch((err) => console.warn('Service Worker registration failed:', err));
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+        cleanUpLoadListener = () => window.removeEventListener('load', registerSW);
+      }
+    }
+
+    // 2. Check active session on mount
     async function initAuth() {
       try {
+        const rememberMe = localStorage.getItem('buku_penghubung_remember_me') === 'true';
+        const sessionActive = sessionStorage.getItem('buku_penghubung_session_active') === 'true';
+
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (session?.user) {
-          const u = await fetchProfile(session.user.id, session.user.email!);
-          if (u) {
-            setUser(u);
-            localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
-          } else {
-            // Profile not found but auth exists - clear it
+          // If rememberMe is false and this is a new session tab (sessionActive is false), log out.
+          if (!rememberMe && !sessionActive) {
             await supabase.auth.signOut();
             setUser(null);
             localStorage.removeItem('buku_penghubung_user');
-          }
-        } else {
-          // Check localStorage backup
-          const stored = localStorage.getItem('buku_penghubung_user');
-          if (stored) {
-            try {
-              setUser(JSON.parse(stored));
-            } catch {
+            sessionStorage.setItem('buku_penghubung_session_active', 'true'); // mark to avoid infinite signouts
+          } else {
+            const u = await fetchProfile(session.user.id, session.user.email!);
+            if (u) {
+              setUser(u);
+              localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
+              sessionStorage.setItem('buku_penghubung_session_active', 'true');
+            } else {
+              // Profile not found but auth exists - clear it
+              await supabase.auth.signOut();
+              setUser(null);
               localStorage.removeItem('buku_penghubung_user');
             }
+          }
+        } else {
+          // Check localStorage backup only if rememberMe is true or sessionActive is true
+          if (rememberMe || sessionActive) {
+            const stored = localStorage.getItem('buku_penghubung_user');
+            if (stored) {
+              try {
+                setUser(JSON.parse(stored));
+              } catch {
+                localStorage.removeItem('buku_penghubung_user');
+              }
+            }
+          } else {
+            localStorage.removeItem('buku_penghubung_user');
           }
         }
       } catch (err) {
@@ -84,26 +118,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    // 2. Listen for auth changes
+    // 3. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const u = await fetchProfile(session.user.id, session.user.email!);
         if (u) {
           setUser(u);
           localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
+          sessionStorage.setItem('buku_penghubung_session_active', 'true');
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         localStorage.removeItem('buku_penghubung_user');
+        sessionStorage.removeItem('buku_penghubung_session_active');
       }
     });
 
     return () => {
       subscription.unsubscribe();
+      if (cleanUpLoadListener) cleanUpLoadListener();
     };
   }, []);
 
-  async function login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async function login(email: string, password: string, rememberMe: boolean = false): Promise<{ success: boolean; error?: string }> {
     try {
       setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -129,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'Profil akun Anda belum dikonfigurasi di database. Hubungi admin.' };
       }
 
+      // Save rememberMe configuration
+      localStorage.setItem('buku_penghubung_remember_me', rememberMe ? 'true' : 'false');
+      sessionStorage.setItem('buku_penghubung_session_active', 'true');
+
       setUser(u);
       localStorage.setItem('buku_penghubung_user', JSON.stringify(u));
       setIsLoading(false);
@@ -147,6 +188,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
       localStorage.removeItem('buku_penghubung_user');
+      localStorage.removeItem('buku_penghubung_remember_me');
+      sessionStorage.removeItem('buku_penghubung_session_active');
     }
   }
 

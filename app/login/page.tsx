@@ -14,6 +14,35 @@ export default function LoginPage() {
   const { login, user } = useAuth();
   const router = useRouter();
 
+  // Remember me and PWA states
+  const [rememberMe, setRememberMe] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
+  useEffect(() => {
+    // 1. Fetch remember me preference
+    const storedRemember = localStorage.getItem('buku_penghubung_remember_me') === 'true';
+    setRememberMe(storedRemember);
+
+    // 2. Listen for PWA install prompt
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallBtn(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') {
@@ -33,12 +62,21 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
     if (!result.success) {
       setError(result.error || 'Login gagal');
       setIsLoading(false);
     }
   }
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowInstallBtn(false);
+  };
 
   return (
     <div style={{
@@ -179,6 +217,33 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* PWA Install Button */}
+        {showInstallBtn && (
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="btn animate-pulse"
+            style={{
+              marginBottom: '14px',
+              padding: '10px',
+              fontSize: '0.85rem',
+              borderRadius: '12px',
+              background: '#E8F8F5',
+              color: '#117864',
+              border: '1.5px dashed #2ECC71',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            📲 Pasang Aplikasi di HP Anda
+          </button>
+        )}
+
         {/* Login Form */}
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div>
@@ -207,6 +272,18 @@ export default function LoginPage() {
               autoComplete="current-password"
               minLength={4}
             />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0 6px 0' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', color: '#5D6D7E', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#27AE60' }}
+              />
+              Ingat akun saya di perangkat ini
+            </label>
           </div>
 
           {error && (

@@ -29,7 +29,7 @@ export default function LaporanPage() {
   const [activities, setActivities] = useState<Record<string, boolean | string>>({});
   const [teacherNote, setTeacherNote] = useState('');
   const [kondisi, setKondisi] = useState<HealthCondition>('sehat');
-  const [suhu, setSuhu] = useState<string>('36.5');
+  const [suhu, setSuhu] = useState<string>('');
   const [healthNote, setHealthNote] = useState('');
   
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ export default function LaporanPage() {
           setActivities(log.schoolActivities || {});
           setTeacherNote(log.teacherNote || '');
           setKondisi(log.healthStatus?.kondisi || 'sehat');
-          setSuhu(log.healthStatus?.suhu?.toString() || '36.5');
+          setSuhu(log.healthStatus?.suhu?.toString() || '');
           setHealthNote(log.healthStatus?.catatan || '');
         } else {
           // Set default empty checkboxes for active activities
@@ -66,7 +66,7 @@ export default function LaporanPage() {
           setActivities(initialActs);
           setTeacherNote('');
           setKondisi('sehat');
-          setSuhu('36.5');
+          setSuhu('');
           setHealthNote('');
         }
       } catch (err) {
