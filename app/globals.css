@@ -23,6 +23,27 @@
   --radius-lg: 24px;
   --radius-xl: 32px;
 
+  /* Role Theme Colors (PAUD IT Darul Khairat Design System) */
+  --role-parent: #2980B9;
+  --role-parent-dark: #1A5276;
+  --role-parent-light: #3498DB;
+  --role-parent-bg: rgba(41, 128, 185, 0.08);
+
+  --role-teacher: #27AE60;
+  --role-teacher-dark: #1E8449;
+  --role-teacher-light: #2ECC71;
+  --role-teacher-bg: rgba(39, 174, 96, 0.08);
+
+  --role-principal: #8E44AD;
+  --role-principal-dark: #6C3483;
+  --role-principal-light: #9B59B6;
+  --role-principal-bg: rgba(142, 68, 173, 0.08);
+
+  --role-admin: #1E8449;
+  --role-admin-dark: #145A32;
+  --role-admin-light: #27AE60;
+  --role-admin-bg: rgba(30, 132, 73, 0.08);
+
   /* Spacing Tokens based on Golden Ratio */
   --spacing-xs: 6px;
   --spacing-sm: 10px;

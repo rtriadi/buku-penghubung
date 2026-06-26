@@ -94,13 +94,11 @@ export default function LoginPage() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Floating decorations */}
-      <div style={{ position: 'absolute', top: '5%', left: '5%', fontSize: '3rem', opacity: 0.2, pointerEvents: 'none', zIndex: 1 }} className="animate-float">🌙</div>
-      <div style={{ position: 'absolute', top: '10%', right: '8%', fontSize: '2rem', opacity: 0.25, pointerEvents: 'none', zIndex: 1 }} className="animate-float-slow delay-200">⭐</div>
-      <div style={{ position: 'absolute', top: '20%', left: '15%', fontSize: '1.5rem', opacity: 0.2, pointerEvents: 'none', zIndex: 1 }} className="animate-float delay-300">✨</div>
-      <div style={{ position: 'absolute', bottom: '25%', right: '5%', fontSize: '2.5rem', opacity: 0.2, pointerEvents: 'none', zIndex: 1 }} className="animate-float-slow delay-100">🌟</div>
-      <div style={{ position: 'absolute', bottom: '15%', left: '8%', fontSize: '2rem', opacity: 0.2, pointerEvents: 'none', zIndex: 1 }} className="animate-float delay-400">☁️</div>
-      <div style={{ position: 'absolute', top: '40%', right: '3%', fontSize: '1.5rem', opacity: 0.15, pointerEvents: 'none', zIndex: 1 }} className="animate-float delay-500">🌿</div>
+      {/* Floating decorations — Clean, elegant, low-opacity */}
+      <div style={{ position: 'absolute', top: '8%', left: '8%', fontSize: '2.5rem', opacity: 0.12, pointerEvents: 'none', zIndex: 1 }} className="animate-float">🌙</div>
+      <div style={{ position: 'absolute', top: '12%', right: '10%', fontSize: '1.8rem', opacity: 0.15, pointerEvents: 'none', zIndex: 1 }} className="animate-float-slow delay-200">⭐</div>
+      <div style={{ position: 'absolute', bottom: '15%', left: '10%', fontSize: '2rem', opacity: 0.12, pointerEvents: 'none', zIndex: 1 }} className="animate-float delay-400">☁️</div>
+      <div style={{ position: 'absolute', bottom: '20%', right: '8%', fontSize: '2.2rem', opacity: 0.12, pointerEvents: 'none', zIndex: 1 }} className="animate-float-slow delay-100">🌟</div>
 
       {/* Islamic pattern overlay */}
       <div style={{
@@ -197,12 +195,30 @@ export default function LoginPage() {
                   flex: 1,
                   padding: '8px 4px',
                   borderRadius: '12px',
-                  border: role === opt.value ? '2.5px solid #27AE60' : '1.5px solid #E8ECF0',
-                  background: role === opt.value ? 'linear-gradient(135deg, #D5F5E3, #A9DFBF)' : '#F8F9FA',
+                  border: role === opt.value
+                    ? opt.value === 'parent'
+                      ? '2.5px solid var(--role-parent)'
+                      : opt.value === 'principal'
+                        ? '2.5px solid var(--role-principal)'
+                        : '2.5px solid var(--role-teacher)'
+                    : '1.5px solid #E8ECF0',
+                  background: role === opt.value
+                    ? opt.value === 'parent'
+                      ? 'linear-gradient(135deg, #EBF5FB, #AED6F1)'
+                      : opt.value === 'principal'
+                        ? 'linear-gradient(135deg, #F5EEF8, #D7BDE2)'
+                        : 'linear-gradient(135deg, #D5F5E3, #A9DFBF)'
+                    : '#F8F9FA',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   textAlign: 'center',
-                  boxShadow: role === opt.value ? '0 4px 10px rgba(39,174,96,0.15)' : 'none',
+                  boxShadow: role === opt.value
+                    ? opt.value === 'parent'
+                      ? '0 4px 10px rgba(41,128,185,0.15)'
+                      : opt.value === 'principal'
+                        ? '0 4px 10px rgba(142,68,173,0.15)'
+                        : '0 4px 10px rgba(39,174,96,0.15)'
+                    : 'none',
                   transform: role === opt.value ? 'translateY(-1px)' : 'none',
                 }}
               >
@@ -211,7 +227,13 @@ export default function LoginPage() {
                   fontFamily: 'Nunito, sans-serif',
                   fontWeight: 800,
                   fontSize: '0.75rem',
-                  color: role === opt.value ? '#1E8449' : '#2C3E50',
+                  color: role === opt.value
+                    ? opt.value === 'parent'
+                      ? 'var(--role-parent-dark)'
+                      : opt.value === 'principal'
+                        ? 'var(--role-principal-dark)'
+                        : 'var(--role-teacher-dark)'
+                    : '#2C3E50',
                 }}>
                   {opt.label}
                 </div>
