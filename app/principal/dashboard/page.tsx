@@ -121,7 +121,7 @@ export default function PrincipalDashboard() {
       </div>
 
       {/* Class and Date Selectors */}
-      <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', overflow: 'visible' }}>
+      <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', overflow: 'visible', position: 'relative', zIndex: 20 }}>
         <div style={{ position: 'relative' }}>
           <label className="input-label" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>📚 Pilih Kelas</label>
           <div

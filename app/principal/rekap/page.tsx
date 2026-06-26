@@ -247,7 +247,7 @@ export default function PrincipalRekapPage() {
       ) : (
         <>
           {/* Filters card */}
-          <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'visible' }}>
+          <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'visible', position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{ position: 'relative' }}>
                 <label className="input-label">🏫 Pilih Kelas</label>
