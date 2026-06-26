@@ -1,7 +1,7 @@
 // app/teacher/laporan/[studentId]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getStudentById, getDailyLog, upsertDailyLog, getActiveSchoolActivities } from '@/lib/db';
 import { KONDISI_OPTIONS, ACTIVITY_CATEGORIES } from '@/lib/constants';
@@ -36,6 +36,31 @@ export default function LaporanPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' });
 
+  // Draft Recovery & Unsaved Changes states
+  const initialStateRef = useRef<{
+    date: string;
+    activities: Record<string, boolean | string>;
+    teacherNote: string;
+    kondisi: HealthCondition;
+    suhu: string;
+    healthNote: string;
+  } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [draftData, setDraftData] = useState<any | null>(null);
+
+  const isStateEqual = (a: any, b: any) => {
+    if (!a || !b) return false;
+    return (
+      a.date === b.date &&
+      a.teacherNote === b.teacherNote &&
+      a.kondisi === b.kondisi &&
+      a.suhu === b.suhu &&
+      a.healthNote === b.healthNote &&
+      JSON.stringify(a.activities) === JSON.stringify(b.activities)
+    );
+  };
+
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -51,23 +76,51 @@ export default function LaporanPage() {
         }
         setSchoolActivities(acts);
 
-        if (log) {
-          setActivities(log.schoolActivities || {});
-          setTeacherNote(log.teacherNote || '');
-          setKondisi(log.healthStatus?.kondisi || 'sehat');
-          setSuhu(log.healthStatus?.suhu?.toString() || '');
-          setHealthNote(log.healthStatus?.catatan || '');
+        const initialActs: Record<string, boolean | string> = {};
+        acts.forEach(a => {
+          initialActs[a.id] = false;
+        });
+
+        const loadedActivities = log?.schoolActivities || initialActs;
+        const loadedTeacherNote = log?.teacherNote || '';
+        const loadedKondisi = log?.healthStatus?.kondisi || 'sehat';
+        const loadedSuhu = log?.healthStatus?.suhu?.toString() || '';
+        const loadedHealthNote = log?.healthStatus?.catatan || '';
+
+        setActivities(loadedActivities);
+        setTeacherNote(loadedTeacherNote);
+        setKondisi(loadedKondisi);
+        setSuhu(loadedSuhu);
+        setHealthNote(loadedHealthNote);
+
+        const dbState = {
+          date: selectedDate,
+          activities: loadedActivities,
+          teacherNote: loadedTeacherNote,
+          kondisi: loadedKondisi,
+          suhu: loadedSuhu,
+          healthNote: loadedHealthNote,
+        };
+        initialStateRef.current = dbState;
+
+        // Check if there is an unsaved draft in sessionStorage
+        const draftKey = `teacher_laporan_draft_${studentId}_${selectedDate}`;
+        const savedDraft = sessionStorage.getItem(draftKey);
+        if (savedDraft) {
+          try {
+            const parsed = JSON.parse(savedDraft);
+            if (!isStateEqual(parsed, dbState)) {
+              setDraftData(parsed);
+              setShowDraftBanner(true);
+            } else {
+              sessionStorage.removeItem(draftKey);
+            }
+          } catch (e) {
+            console.error('Error parsing draft:', e);
+          }
         } else {
-          // Set default empty checkboxes for active activities
-          const initialActs: Record<string, boolean | string> = {};
-          acts.forEach(a => {
-            initialActs[a.id] = false;
-          });
-          setActivities(initialActs);
-          setTeacherNote('');
-          setKondisi('sehat');
-          setSuhu('');
-          setHealthNote('');
+          setShowDraftBanner(false);
+          setDraftData(null);
         }
       } catch (err) {
         console.error('Error loading laporan data:', err);
@@ -78,6 +131,85 @@ export default function LaporanPage() {
 
     loadData();
   }, [studentId, selectedDate]);
+
+  // Save draft to sessionStorage on change
+  useEffect(() => {
+    if (loading || isSaving || !initialStateRef.current) return;
+
+    const currentState = {
+      date: selectedDate,
+      activities,
+      teacherNote,
+      kondisi,
+      suhu,
+      healthNote,
+    };
+
+    const dirty = !isStateEqual(currentState, initialStateRef.current);
+    setIsDirty(dirty);
+
+    if (typeof window !== 'undefined') {
+      (window as any).isFormDirty = dirty;
+    }
+
+    const draftKey = `teacher_laporan_draft_${studentId}_${selectedDate}`;
+    if (dirty) {
+      sessionStorage.setItem(draftKey, JSON.stringify(currentState));
+    } else {
+      sessionStorage.removeItem(draftKey);
+    }
+  }, [selectedDate, activities, teacherNote, kondisi, suhu, healthNote, loading, isSaving, studentId]);
+
+  // Clean dirty flag on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        (window as any).isFormDirty = false;
+      }
+    };
+  }, []);
+
+  // beforeunload event listener
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+  const handleRestoreDraft = () => {
+    if (!draftData) return;
+    setActivities(draftData.activities);
+    setTeacherNote(draftData.teacherNote);
+    setKondisi(draftData.kondisi);
+    setSuhu(draftData.suhu);
+    setHealthNote(draftData.healthNote);
+    setShowDraftBanner(false);
+    setDraftData(null);
+  };
+
+  const handleDiscardDraft = () => {
+    const draftKey = `teacher_laporan_draft_${studentId}_${selectedDate}`;
+    sessionStorage.removeItem(draftKey);
+    setShowDraftBanner(false);
+    setDraftData(null);
+  };
+
+  const handleBack = () => {
+    if (isDirty) {
+      if (confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin keluar?')) {
+        router.back();
+      }
+    } else {
+      router.back();
+    }
+  };
 
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ show: true, message, type });
@@ -116,6 +248,15 @@ export default function LaporanPage() {
         },
         createdBy: user.id,
       });
+
+      // Clear draft in sessionStorage
+      const draftKey = `teacher_laporan_draft_${studentId}_${selectedDate}`;
+      sessionStorage.removeItem(draftKey);
+      if (typeof window !== 'undefined') {
+        (window as any).isFormDirty = false;
+      }
+      setIsDirty(false);
+
       showToast('Laporan berhasil disimpan! 🎉', 'success');
       setTimeout(() => router.push('/teacher/dashboard'), 1500);
     } catch (err) {
@@ -163,7 +304,7 @@ export default function LaporanPage() {
       }}>
         {/* Back button */}
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           style={{
             background: 'rgba(255,255,255,0.2)',
             border: 'none',
@@ -229,6 +370,65 @@ export default function LaporanPage() {
       </div>
 
       <div className="page-content" style={{ paddingTop: '20px' }}>
+        {/* Draft Recovery Banner */}
+        {showDraftBanner && (
+          <div style={{
+            background: '#FEF9E7',
+            border: '1.5px solid #F9E79F',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }} className="animate-fade-in-up">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '1.5rem' }}>📝</span>
+              <div>
+                <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#B7950B' }}>
+                  Draf Belum Disimpan Ditemukan
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#7D6608' }}>
+                  Ada draf laporan untuk tanggal ini yang belum disimpan.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              <button
+                onClick={handleRestoreDraft}
+                className="btn"
+                style={{
+                  background: '#F1C40F',
+                  color: '#7D6608',
+                  border: 'none',
+                  padding: '6px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Pulihkan
+              </button>
+              <button
+                onClick={handleDiscardDraft}
+                className="btn btn-outline"
+                style={{
+                  borderColor: '#F9E79F',
+                  color: '#7D6608',
+                  padding: '6px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Abaikan
+              </button>
+            </div>
+          </div>
+        )}
         {/* Date Selector Row */}
         <div className="card" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label className="input-label" style={{ margin: 0, fontWeight: 800, color: 'var(--text-dark)' }}>

@@ -185,7 +185,15 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
 
             <button
-              onClick={() => { logout(); router.replace('/login'); }}
+              onClick={() => {
+                if (typeof window !== 'undefined' && (window as any).isFormDirty) {
+                  if (!confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin keluar?')) {
+                    return;
+                  }
+                }
+                logout();
+                router.replace('/login');
+              }}
               style={{
                 background: 'rgba(255,255,255,0.2)',
                 border: 'none', borderRadius: '10px',
@@ -213,6 +221,13 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             href={item.href}
             className={`bottom-nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
             style={{ '--tw-text-opacity': 1 } as React.CSSProperties}
+            onClick={(e) => {
+              if (typeof window !== 'undefined' && (window as any).isFormDirty) {
+                if (!confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin meninggalkan halaman ini?')) {
+                  e.preventDefault();
+                }
+              }
+            }}
           >
             <span className="nav-icon">
               {item.isBell ? (
@@ -315,7 +330,15 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
                   Tutup
                 </button>
                 <button 
-                  onClick={() => { logout(); router.replace('/login'); }}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && (window as any).isFormDirty) {
+                      if (!confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin keluar?')) {
+                        return;
+                      }
+                    }
+                    logout();
+                    router.replace('/login');
+                  }}
                   className="btn btn-danger"
                   style={{ flex: 1, padding: '10px', fontSize: '0.85rem', borderRadius: '10px', background: '#E74C3C', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700 }}
                 >

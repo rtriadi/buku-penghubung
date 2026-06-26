@@ -1,7 +1,7 @@
 // app/parent/dashboard/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import {
   getStudentById,
@@ -46,6 +46,25 @@ export default function ParentDashboard() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
+  // Draft Recovery & Unsaved Changes states
+  const initialStateRef = useRef<{
+    date: string;
+    homeActivities: Record<string, boolean | string>;
+    parentNote: string;
+  } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [draftData, setDraftData] = useState<any | null>(null);
+
+  const isStateEqual = (a: any, b: any) => {
+    if (!a || !b) return false;
+    return (
+      a.date === b.date &&
+      a.parentNote === b.parentNote &&
+      JSON.stringify(a.homeActivities) === JSON.stringify(b.homeActivities)
+    );
+  };
+
   // Load all children for this parent
   useEffect(() => {
     async function loadParentStudents() {
@@ -82,6 +101,13 @@ export default function ParentDashboard() {
     if (students.length <= 1) return;
     const currentIndex = students.findIndex(s => s.id === activeChildId);
     if (currentIndex === -1) return;
+
+    if (isDirty) {
+      if (!confirm('Anda memiliki perubahan yang belum disimpan untuk anak ini. Apakah Anda yakin ingin beralih? (Perubahan akan tersimpan sebagai draf)')) {
+        return;
+      }
+    }
+
     const nextIndex = (currentIndex + 1) % students.length;
     const nextChild = students[nextIndex];
     
@@ -94,6 +120,13 @@ export default function ParentDashboard() {
     if (students.length <= 1) return;
     const currentIndex = students.findIndex(s => s.id === activeChildId);
     if (currentIndex === -1) return;
+
+    if (isDirty) {
+      if (!confirm('Anda memiliki perubahan yang belum disimpan untuk anak ini. Apakah Anda yakin ingin beralih? (Perubahan akan tersimpan sebagai draf)')) {
+        return;
+      }
+    }
+
     const prevIndex = (currentIndex - 1 + students.length) % students.length;
     const prevChild = students[prevIndex];
     
@@ -162,17 +195,42 @@ export default function ParentDashboard() {
         setActiveHomeActivities(ha);
         setSchoolLog(sLog || null);
 
-        if (hLog) {
-          setHomeActivities(hLog.homeActivities || {});
-          setParentNote(hLog.parentNote || '');
+        const initialActs: Record<string, boolean | string> = {};
+        ha.forEach(a => {
+          initialActs[a.id] = false;
+        });
+
+        const loadedHomeActivities = hLog?.homeActivities || initialActs;
+        const loadedParentNote = hLog?.parentNote || '';
+
+        setHomeActivities(loadedHomeActivities);
+        setParentNote(loadedParentNote);
+
+        const dbState = {
+          date: selectedDate,
+          homeActivities: loadedHomeActivities,
+          parentNote: loadedParentNote,
+        };
+        initialStateRef.current = dbState;
+
+        // Check if there is an unsaved draft in sessionStorage
+        const draftKey = `parent_laporan_draft_${activeChildId}_${selectedDate}`;
+        const savedDraft = sessionStorage.getItem(draftKey);
+        if (savedDraft) {
+          try {
+            const parsed = JSON.parse(savedDraft);
+            if (!isStateEqual(parsed, dbState)) {
+              setDraftData(parsed);
+              setShowDraftBanner(true);
+            } else {
+              sessionStorage.removeItem(draftKey);
+            }
+          } catch (e) {
+            console.error('Error parsing draft:', e);
+          }
         } else {
-          // Initialize empty checklist
-          const initialActs: Record<string, boolean | string> = {};
-          ha.forEach(a => {
-            initialActs[a.id] = false;
-          });
-          setHomeActivities(initialActs);
-          setParentNote('');
+          setShowDraftBanner(false);
+          setDraftData(null);
         }
       } catch (err) {
         console.error('Error loading parent dashboard:', err);
@@ -183,6 +241,69 @@ export default function ParentDashboard() {
 
     loadData();
   }, [user, selectedDate, activeChildId]);
+
+  // Save draft to sessionStorage on change
+  useEffect(() => {
+    if (loading || isSaving || !initialStateRef.current || !activeChildId) return;
+
+    const currentState = {
+      date: selectedDate,
+      homeActivities,
+      parentNote,
+    };
+
+    const dirty = !isStateEqual(currentState, initialStateRef.current);
+    setIsDirty(dirty);
+
+    if (typeof window !== 'undefined') {
+      (window as any).isFormDirty = dirty;
+    }
+
+    const draftKey = `parent_laporan_draft_${activeChildId}_${selectedDate}`;
+    if (dirty) {
+      sessionStorage.setItem(draftKey, JSON.stringify(currentState));
+    } else {
+      sessionStorage.removeItem(draftKey);
+    }
+  }, [selectedDate, homeActivities, parentNote, loading, isSaving, activeChildId]);
+
+  // Clean dirty flag on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        (window as any).isFormDirty = false;
+      }
+    };
+  }, []);
+
+  // beforeunload event listener
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+  const handleRestoreDraft = () => {
+    if (!draftData) return;
+    setHomeActivities(draftData.homeActivities);
+    setParentNote(draftData.parentNote);
+    setShowDraftBanner(false);
+    setDraftData(null);
+  };
+
+  const handleDiscardDraft = () => {
+    const draftKey = `parent_laporan_draft_${activeChildId}_${selectedDate}`;
+    sessionStorage.removeItem(draftKey);
+    setShowDraftBanner(false);
+    setDraftData(null);
+  };
 
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ show: true, message, type });
@@ -215,6 +336,22 @@ export default function ParentDashboard() {
         parentNote,
         createdBy: user.id,
       });
+
+      // Clear draft in sessionStorage
+      const draftKey = `parent_laporan_draft_${student.id}_${selectedDate}`;
+      sessionStorage.removeItem(draftKey);
+      if (typeof window !== 'undefined') {
+        (window as any).isFormDirty = false;
+      }
+      setIsDirty(false);
+      
+      // Set the saved state as the new initial state so it is no longer dirty
+      initialStateRef.current = {
+        date: selectedDate,
+        homeActivities,
+        parentNote,
+      };
+
       showToast('Laporan rumah berhasil disimpan! 🏡', 'success');
     } catch (err) {
       console.error(err);
@@ -293,6 +430,11 @@ export default function ParentDashboard() {
                     <button
                       key={s.id}
                       onClick={() => {
+                        if (isDirty) {
+                          if (!confirm('Anda memiliki perubahan yang belum disimpan untuk anak ini. Apakah Anda yakin ingin beralih? (Perubahan akan tersimpan sebagai draf)')) {
+                            return;
+                          }
+                        }
                         setActiveChildId(s.id);
                         localStorage.setItem('buku_penghubung_active_child_id', s.id);
                         window.dispatchEvent(new Event('activeChildChanged'));
@@ -395,6 +537,65 @@ export default function ParentDashboard() {
       </div>
 
       <div className="page-content" style={{ paddingTop: '24px' }}>
+        {/* Draft Recovery Banner */}
+        {showDraftBanner && (
+          <div style={{
+            background: '#FEF9E7',
+            border: '1.5px solid #F9E79F',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px'
+          }} className="animate-fade-in-up">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '1.5rem' }}>📝</span>
+              <div>
+                <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#B7950B' }}>
+                  Draf Belum Disimpan Ditemukan
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#7D6608' }}>
+                  Ada draf laporan rumah untuk tanggal ini yang belum disimpan.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              <button
+                onClick={handleRestoreDraft}
+                className="btn"
+                style={{
+                  background: '#F1C40F',
+                  color: '#7D6608',
+                  border: 'none',
+                  padding: '6px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Pulihkan
+              </button>
+              <button
+                onClick={handleDiscardDraft}
+                className="btn btn-outline"
+                style={{
+                  borderColor: '#F9E79F',
+                  color: '#7D6608',
+                  padding: '6px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Abaikan
+              </button>
+            </div>
+          </div>
+        )}
         {/* Date Selector Row */}
         <div className="card animate-fade-in-up" style={{ padding: '16px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label className="input-label" style={{ margin: 0, fontWeight: 800, color: 'var(--text-dark)' }}>
