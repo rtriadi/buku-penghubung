@@ -194,7 +194,7 @@ CREATE POLICY "Teachers see all students in their class" ON students FOR SELECT
   USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'teacher' AND class_id = students.class_id));
 
 CREATE POLICY "Parents see only their child" ON students FOR SELECT
-  USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'parent' AND student_id = students.id));
+  USING ((auth.uid() = parent_id) OR (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'parent' AND student_id = students.id)));
 
 CREATE POLICY "Admins can manage all students" ON students FOR ALL TO authenticated
   USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
@@ -203,13 +203,13 @@ CREATE POLICY "Teachers can manage daily logs for their class" ON daily_logs FOR
   USING (EXISTS (SELECT 1 FROM profiles p JOIN students s ON s.id = daily_logs.student_id WHERE p.id = auth.uid() AND p.role = 'teacher' AND p.class_id = s.class_id));
 
 CREATE POLICY "Parents can read their child daily logs" ON daily_logs FOR SELECT
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'parent' AND p.student_id = daily_logs.student_id));
+  USING (EXISTS (SELECT 1 FROM students s WHERE s.id = daily_logs.student_id AND (s.parent_id = auth.uid() OR s.id = (SELECT student_id FROM profiles WHERE id = auth.uid()))));
 
 CREATE POLICY "Admins can manage all daily logs" ON daily_logs FOR ALL TO authenticated
   USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 CREATE POLICY "Parents can manage their child home logs" ON home_logs FOR ALL
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'parent' AND p.student_id = home_logs.student_id));
+  USING (EXISTS (SELECT 1 FROM students s WHERE s.id = home_logs.student_id AND (s.parent_id = auth.uid() OR s.id = (SELECT student_id FROM profiles WHERE id = auth.uid()))));
 
 CREATE POLICY "Teachers can read home logs for their class" ON home_logs FOR SELECT
   USING (EXISTS (SELECT 1 FROM profiles p JOIN students s ON s.id = home_logs.student_id WHERE p.id = auth.uid() AND p.role = 'teacher' AND p.class_id = s.class_id));

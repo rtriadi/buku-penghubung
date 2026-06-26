@@ -215,7 +215,9 @@ export default function TeacherRekapPage() {
         display: 'flex',
         flexWrap: 'wrap',
         gap: '12px',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        position: 'relative',
+        zIndex: (searchSelectOpen || monthDropdownOpen || yearDropdownOpen) ? 40 : 1,
       }}>
         <div style={{ flex: '2 1 240px', position: 'relative', zIndex: searchSelectOpen ? 30 : 1 }}>
           <label className="input-label">👶 Pilih Siswa</label>

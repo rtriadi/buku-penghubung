@@ -227,7 +227,9 @@ export default function ParentRekapPage() {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
         gap: '12px',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        position: 'relative',
+        zIndex: (monthDropdownOpen || yearDropdownOpen) ? 40 : 1,
       }}>
         <div style={{ position: 'relative', zIndex: monthDropdownOpen ? 30 : 1 }}>
           <label className="input-label">📅 Pilih Bulan</label>
