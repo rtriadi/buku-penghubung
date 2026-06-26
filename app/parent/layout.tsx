@@ -184,7 +184,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {students.length > 1 && (
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: childDropdownOpen ? 1000 : 1 }}>
                 <button
                   onClick={() => setChildDropdownOpen(!childDropdownOpen)}
                   style={{

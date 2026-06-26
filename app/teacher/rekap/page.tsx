@@ -217,7 +217,7 @@ export default function TeacherRekapPage() {
         gap: '12px',
         marginBottom: '20px'
       }}>
-        <div style={{ flex: '2 1 240px', position: 'relative' }}>
+        <div style={{ flex: '2 1 240px', position: 'relative', zIndex: searchSelectOpen ? 30 : 1 }}>
           <label className="input-label">👶 Pilih Siswa</label>
           <div
             onClick={() => setSearchSelectOpen(!searchSelectOpen)}
@@ -343,7 +343,7 @@ export default function TeacherRekapPage() {
             </>
           )}
         </div>
-        <div style={{ flex: '1 1 140px', position: 'relative' }}>
+        <div style={{ flex: '1 1 140px', position: 'relative', zIndex: monthDropdownOpen ? 30 : 1 }}>
           <label className="input-label">📅 Pilih Bulan</label>
           <div
             onClick={() => {
@@ -428,7 +428,7 @@ export default function TeacherRekapPage() {
             </>
           )}
         </div>
-        <div style={{ flex: '1 1 100px', position: 'relative' }}>
+        <div style={{ flex: '1 1 100px', position: 'relative', zIndex: yearDropdownOpen ? 30 : 1 }}>
           <label className="input-label">🗓️ Tahun</label>
           <div
             onClick={() => {

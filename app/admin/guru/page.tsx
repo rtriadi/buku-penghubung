@@ -603,7 +603,7 @@ export default function AdminGuruPage() {
                 </div>
               )}
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: searchClassOpen ? 120 : 1 }}>
                 <label className="input-label">🏫 Tugas Kelas</label>
                 <div
                   onClick={() => !saving && setSearchClassOpen(!searchClassOpen)}

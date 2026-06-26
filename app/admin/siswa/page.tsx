@@ -593,7 +593,7 @@ export default function AdminSiswaPage() {
                 </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: statusDropdownOpen ? 120 : 1 }}>
                 <label className="input-label">📌 Status Siswa</label>
                 <div
                   onClick={() => !saving && setStatusDropdownOpen(!statusDropdownOpen)}
@@ -684,7 +684,7 @@ export default function AdminSiswaPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
+                <div style={{ flex: 1, position: 'relative', zIndex: searchClassOpen ? 120 : 1 }}>
                   <label className="input-label">🏫 Kelas</label>
                   <div
                     onClick={() => !saving && setSearchClassOpen(!searchClassOpen)}
@@ -790,7 +790,7 @@ export default function AdminSiswaPage() {
                   )}
                 </div>
 
-                <div style={{ flex: 1, position: 'relative' }}>
+                <div style={{ flex: 1, position: 'relative', zIndex: searchParentOpen ? 120 : 1 }}>
                   <label className="input-label">👨‍👩 Orang Tua / Wali</label>
                   <div
                     onClick={() => !saving && setSearchParentOpen(!searchParentOpen)}
@@ -1036,7 +1036,7 @@ export default function AdminSiswaPage() {
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: bulkClassDropdownOpen ? 120 : 1 }}>
                 <label className="input-label">🏫 Pilih Kelas Baru</label>
                 <div
                   onClick={() => !bulkSaving && setBulkClassDropdownOpen(!bulkClassDropdownOpen)}
@@ -1135,7 +1135,7 @@ export default function AdminSiswaPage() {
                 )}
               </div>
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: bulkStatusDropdownOpen ? 120 : 1 }}>
                 <label className="input-label">📌 Pilih Status Baru</label>
                 <div
                   onClick={() => !bulkSaving && setBulkStatusDropdownOpen(!bulkStatusDropdownOpen)}

@@ -249,7 +249,7 @@ export default function PrincipalRekapPage() {
           {/* Filters card */}
           <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'visible', position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: classDropdownOpen ? 30 : 1 }}>
                 <label className="input-label">🏫 Pilih Kelas</label>
                 <div
                   onClick={() => setClassDropdownOpen(!classDropdownOpen)}
@@ -354,7 +354,7 @@ export default function PrincipalRekapPage() {
                   </>
                 )}
               </div>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: searchSelectOpen ? 30 : 1 }}>
                 <label className="input-label">👶 Pilih Siswa</label>
                 <div
                   onClick={() => setSearchSelectOpen(!searchSelectOpen)}
@@ -527,7 +527,7 @@ export default function PrincipalRekapPage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: monthDropdownOpen ? 30 : 1 }}>
                 <label className="input-label">📅 Pilih Bulan</label>
                 <div
                   onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
@@ -597,7 +597,7 @@ export default function PrincipalRekapPage() {
                   </>
                 )}
               </div>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: yearDropdownOpen ? 30 : 1 }}>
                 <label className="input-label">🗓️ Tahun</label>
                 <div
                   onClick={() => setYearDropdownOpen(!yearDropdownOpen)}

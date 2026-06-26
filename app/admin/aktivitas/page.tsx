@@ -646,7 +646,7 @@ export default function AdminAktivitasPage() {
                 </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: searchCategoryOpen ? 120 : 1 }}>
                 <label className="input-label">📂 Kategori Aktivitas</label>
                 <div
                   onClick={() => !saving && setSearchCategoryOpen(!searchCategoryOpen)}

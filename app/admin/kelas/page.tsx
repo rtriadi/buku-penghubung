@@ -307,7 +307,7 @@ export default function AdminKelasPage() {
                 />
               </div>
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: searchTeacherOpen ? 120 : 1 }}>
                 <label className="input-label">👩‍🏫 Guru Wali Kelas</label>
                 <div
                   onClick={() => !saving && setSearchTeacherOpen(!searchTeacherOpen)}

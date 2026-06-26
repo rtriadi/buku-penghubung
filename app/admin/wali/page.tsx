@@ -498,7 +498,7 @@ export default function AdminWaliPage() {
                 </div>
               )}
 
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: searchSelectOpen ? 120 : 1 }}>
                 <label className="input-label">👶 Hubungkan ke Siswa</label>
                 <div
                   onClick={() => !saving && setSearchSelectOpen(!searchSelectOpen)}

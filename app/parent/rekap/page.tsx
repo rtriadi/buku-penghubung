@@ -229,7 +229,7 @@ export default function ParentRekapPage() {
         gap: '12px',
         marginBottom: '20px'
       }}>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', zIndex: monthDropdownOpen ? 30 : 1 }}>
           <label className="input-label">📅 Pilih Bulan</label>
           <div
             onClick={() => {
@@ -313,7 +313,7 @@ export default function ParentRekapPage() {
             </>
           )}
         </div>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', zIndex: yearDropdownOpen ? 30 : 1 }}>
           <label className="input-label">🗓️ Tahun</label>
           <div
             onClick={() => {
