@@ -18,6 +18,22 @@ const NAV_ITEMS = [
   { href: '/pengumuman', emoji: '🔔', label: 'Pengumuman', isBell: true },
 ];
 
+const getParentDisplayName = (studentsList: Student[]) => {
+  if (studentsList.length === 0) return 'Buku Penghubung';
+  if (studentsList.length === 1) return `Orang Tua ${studentsList[0].nickname}`;
+  if (studentsList.length === 2) return `Orang Tua ${studentsList[0].nickname} & ${studentsList[1].nickname}`;
+  const leadingNames = studentsList.slice(0, -1).map(s => s.nickname).join(', ');
+  return `Orang Tua ${leadingNames} & ${studentsList[studentsList.length - 1].nickname}`;
+};
+
+const getWaliDisplayName = (studentsList: Student[]) => {
+  if (studentsList.length === 0) return 'Wali';
+  if (studentsList.length === 1) return `Wali ${studentsList[0].nickname}`;
+  if (studentsList.length === 2) return `Wali ${studentsList[0].nickname} & ${studentsList[1].nickname}`;
+  const leadingNames = studentsList.slice(0, -1).map(s => s.nickname).join(', ');
+  return `Wali ${leadingNames} & ${studentsList[studentsList.length - 1].nickname}`;
+};
+
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
@@ -29,6 +45,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
   const [activeAnnouncements, setActiveAnnouncements] = useState<Announcement[]>([]);
   const [readIds, setReadIds] = useState<string[]>([]);
   const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
+  const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'parent')) {
@@ -75,6 +92,24 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
       loadStudents();
     }
   }, [user]);
+
+  // Sync active child state when changed from dashboard
+  useEffect(() => {
+    const handleChildChanged = () => {
+      const storedChildId = localStorage.getItem('buku_penghubung_active_child_id');
+      if (storedChildId && students.length > 0) {
+        const foundChild = students.find(s => s.id === storedChildId);
+        if (foundChild) {
+          setActiveChild(foundChild);
+        }
+      }
+    };
+
+    window.addEventListener('activeChildChanged', handleChildChanged);
+    return () => {
+      window.removeEventListener('activeChildChanged', handleChildChanged);
+    };
+  }, [students]);
 
   useEffect(() => {
     async function loadAnnouncements() {
@@ -140,7 +175,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             />
             <div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '0.95rem', color: 'white', lineHeight: 1.2 }}>
-                {activeChild ? `Orang Tua ${activeChild.nickname}` : 'Buku Penghubung'}
+                {students.length > 0 ? getParentDisplayName(students) : 'Buku Penghubung'}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
                 {getGreeting()}, {user.name.split(' ')[0]}! 👋
@@ -149,35 +184,111 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {students.length > 1 && (
-              <select
-                value={activeChild?.id || ''}
-                onChange={(e) => {
-                  const child = students.find(s => s.id === e.target.value);
-                  if (child) {
-                    setActiveChild(child);
-                    localStorage.setItem('buku_penghubung_active_child_id', child.id);
-                    window.dispatchEvent(new Event('activeChildChanged'));
-                  }
-                }}
-                style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '8px 12px',
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {students.map(s => (
-                  <option key={s.id} value={s.id} style={{ color: 'var(--text-dark)' }}>
-                    👶 {s.nickname}
-                  </option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setChildDropdownOpen(!childDropdownOpen)}
+                  style={{
+                    background: 'rgba(255,255,255,0.25)',
+                    color: 'white',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '12px',
+                    padding: '8px 14px',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <span>{activeChild?.avatarEmoji || '👶'} {activeChild?.nickname}</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.8, transition: 'transform 0.2s', transform: childDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+                </button>
+
+                {childDropdownOpen && (
+                  <>
+                    <div 
+                      onClick={() => setChildDropdownOpen(false)}
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 998,
+                        background: 'transparent',
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 'calc(100% + 8px)',
+                      background: 'white',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                      padding: '6px',
+                      minWidth: '160px',
+                      zIndex: 999,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      animation: 'fade-in-up 0.2s ease-out',
+                    }}>
+                      <div style={{ fontSize: '0.65rem', color: '#AEB6BF', padding: '4px 8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Pilih Anak
+                      </div>
+                      {students.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            setActiveChild(s);
+                            localStorage.setItem('buku_penghubung_active_child_id', s.id);
+                            window.dispatchEvent(new Event('activeChildChanged'));
+                            setChildDropdownOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            width: '100%',
+                            padding: '8px 12px',
+                            background: s.id === activeChild?.id ? '#EBF5FB' : 'transparent',
+                            color: s.id === activeChild?.id ? '#2980B9' : '#2C3E50',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: s.id === activeChild?.id ? 800 : 600,
+                            fontSize: '0.82rem',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (s.id !== activeChild?.id) {
+                              e.currentTarget.style.background = '#F2F4F4';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (s.id !== activeChild?.id) {
+                              e.currentTarget.style.background = 'transparent';
+                            }
+                          }}
+                        >
+                          <span style={{ fontSize: '1.1rem' }}>{s.avatarEmoji || '👶'}</span>
+                          <span>{s.nickname}</span>
+                          {s.id === activeChild?.id && (
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#2980B9' }}>✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
             <button
               onClick={() => { logout(); router.replace('/login'); }}
@@ -198,7 +309,10 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
       <main>{children}</main>
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{
+        ['--nav-active-color' as any]: '#2980B9',
+        ['--nav-active-shadow' as any]: 'rgba(41, 128, 185, 0.25)',
+      }}>
         {NAV_ITEMS.map(item => (
           <Link
             key={item.href}
@@ -221,7 +335,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
         ))}
         <button
           onClick={() => setShowProfileModal(true)}
-          className="bottom-nav-item"
+          className={`bottom-nav-item ${showProfileModal ? 'active' : ''}`}
         >
           <span className="nav-icon">👤</span>
           <span>Profil</span>
@@ -261,7 +375,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
                 {user.name}
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--accent-blue)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
-                👨‍👩 Orang Tua {activeChild?.nickname ? `Wali ${activeChild.nickname}` : 'Wali'}
+                👨‍👩 {getWaliDisplayName(students)}
               </p>
               <div style={{ background: '#F8F9FA', borderRadius: '12px', padding: '12px 14px', textAlign: 'left', marginBottom: '20px', border: '1px solid #F0F2F5' }}>
                 <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '2px' }}>📧 Email Akun</div>

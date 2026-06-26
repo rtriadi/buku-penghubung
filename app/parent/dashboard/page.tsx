@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import {
   getStudentById,
+  getStudentsByParent,
   getDailyLog,
   getHomeLog,
   upsertHomeLog,
@@ -41,6 +42,26 @@ export default function ParentDashboard() {
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' });
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
 
+  const [students, setStudents] = useState<Student[]>([]);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  // Load all children for this parent
+  useEffect(() => {
+    async function loadParentStudents() {
+      if (user) {
+        try {
+          const list = await getStudentsByParent(user.id);
+          const activeList = list.filter(s => s.status !== 'alumni');
+          setStudents(activeList);
+        } catch (err) {
+          console.error('Error loading parent students in dashboard:', err);
+        }
+      }
+    }
+    loadParentStudents();
+  }, [user]);
+
   useEffect(() => {
     // Set initial child ID from localStorage
     const storedId = localStorage.getItem('buku_penghubung_active_child_id');
@@ -56,6 +77,54 @@ export default function ParentDashboard() {
       window.removeEventListener('activeChildChanged', handleChildChanged);
     };
   }, [user]);
+
+  const switchToNextChild = () => {
+    if (students.length <= 1) return;
+    const currentIndex = students.findIndex(s => s.id === activeChildId);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % students.length;
+    const nextChild = students[nextIndex];
+    
+    setActiveChildId(nextChild.id);
+    localStorage.setItem('buku_penghubung_active_child_id', nextChild.id);
+    window.dispatchEvent(new Event('activeChildChanged'));
+  };
+
+  const switchToPrevChild = () => {
+    if (students.length <= 1) return;
+    const currentIndex = students.findIndex(s => s.id === activeChildId);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + students.length) % students.length;
+    const prevChild = students[prevIndex];
+    
+    setActiveChildId(prevChild.id);
+    localStorage.setItem('buku_penghubung_active_child_id', prevChild.id);
+    window.dispatchEvent(new Event('activeChildChanged'));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      switchToNextChild();
+    } else if (distance < -minSwipeDistance) {
+      switchToPrevChild();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -188,38 +257,105 @@ export default function ParentDashboard() {
         padding: '0 20px 24px',
         position: 'relative',
       }}>
-        <div className="card" style={{
-          padding: '20px',
-          background: 'rgba(255,255,255,0.15)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '20px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '14px' }}>
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="card" 
+          style={{
+            padding: '20px 14px',
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '20px',
+            position: 'relative',
+            touchAction: 'pan-y',
+          }}
+        >
+          {students.length > 1 && (
+            <>
+              {/* Left Arrow Button */}
+              <button
+                onClick={switchToPrevChild}
+                style={{
+                  position: 'absolute',
+                  left: '-12px',
+                  top: '40px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  color: '#2980B9',
+                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  fontWeight: 'bold',
+                  userSelect: 'none',
+                }}
+              >
+                ◀
+              </button>
+              
+              {/* Right Arrow Button */}
+              <button
+                onClick={switchToNextChild}
+                style={{
+                  position: 'absolute',
+                  right: '-12px',
+                  top: '40px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  color: '#2980B9',
+                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  fontWeight: 'bold',
+                  userSelect: 'none',
+                }}
+              >
+                ▶
+              </button>
+            </>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', padding: '0 8px' }}>
             <div style={{
               width: '72px', height: '72px', borderRadius: '20px',
               background: 'rgba(255,255,255,0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem',
               boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              flexShrink: 0,
             }}>
               {student.avatarEmoji}
             </div>
-            <div>
-              <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {student.nickname}
               </h1>
-              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)' }}>{student.name}</p>
+              <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</p>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                 📅 {mounted ? formatDateIndonesia(selectedDate) : '—'}
               </p>
             </div>
             {kondisiData && (
               <div style={{
-                marginLeft: 'auto',
                 background: kondisiData.bg,
                 padding: '8px 12px',
                 borderRadius: '12px',
                 textAlign: 'center',
+                flexShrink: 0,
               }}>
                 <div style={{ fontSize: '1.5rem' }}>{kondisiData.emoji}</div>
                 <div style={{ fontSize: '0.65rem', fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: kondisiData.color }}>
@@ -231,7 +367,7 @@ export default function ParentDashboard() {
 
           {/* School Progress */}
           {schoolLog ? (
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '12px', margin: '0 8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>
                   🏫 Kegiatan Sekolah
@@ -257,8 +393,40 @@ export default function ParentDashboard() {
               borderRadius: '12px', padding: '12px',
               textAlign: 'center',
               fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)',
+              margin: '0 8px',
             }}>
               ⏳ Laporan sekolah belum diisi guru pada tanggal ini
+            </div>
+          )}
+
+          {students.length > 1 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '6px',
+              marginTop: '14px',
+            }}>
+              {students.map((s, idx) => {
+                const isActive = s.id === activeChildId;
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      setActiveChildId(s.id);
+                      localStorage.setItem('buku_penghubung_active_child_id', s.id);
+                      window.dispatchEvent(new Event('activeChildChanged'));
+                    }}
+                    style={{
+                      width: isActive ? '18px' : '6px',
+                      height: '6px',
+                      borderRadius: '3px',
+                      background: isActive ? 'white' : 'rgba(255,255,255,0.4)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -353,7 +521,17 @@ export default function ParentDashboard() {
             Ceritakan kegiatan {student.nickname} di rumah pada tanggal ini 😊
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            marginBottom: '20px',
+            ['--activity-active-color' as any]: '#2980B9',
+            ['--activity-active-color-light' as any]: '#3498DB',
+            ['--activity-active-bg' as any]: 'linear-gradient(135deg, #EBF5FB, #AED6F1)',
+            ['--activity-active-shadow' as any]: 'rgba(41, 128, 185, 0.25)',
+            ['--activity-hover-bg' as any]: '#F4F9FD',
+          }}>
             {activeHomeActivities.map(activity => {
               const val = homeActivities[activity.id];
               const isChecked = val === true || (activity.hasTime && typeof val === 'string' && val !== '' && val !== undefined);

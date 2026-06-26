@@ -121,7 +121,10 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{
+        ['--nav-active-color' as any]: '#27AE60',
+        ['--nav-active-shadow' as any]: 'rgba(39, 174, 96, 0.25)',
+      }}>
         {NAV_ITEMS.map(item => (
           <Link
             key={item.href}
@@ -143,7 +146,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         ))}
         <button
           onClick={() => setShowProfileModal(true)}
-          className="bottom-nav-item"
+          className={`bottom-nav-item ${showProfileModal ? 'active' : ''}`}
         >
           <span className="nav-icon">👤</span>
           <span>Profil</span>

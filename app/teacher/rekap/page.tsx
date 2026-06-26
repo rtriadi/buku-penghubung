@@ -71,6 +71,8 @@ export default function TeacherRekapPage() {
   // Select2 Search States
   const [searchSelectOpen, setSearchSelectOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
 
   const dates = getDatesInMonth(selectedYear, selectedMonth);
   const student = students.find(s => s.id === selectedStudentId);
@@ -341,31 +343,173 @@ export default function TeacherRekapPage() {
             </>
           )}
         </div>
-        <div style={{ flex: '1 1 140px' }}>
+        <div style={{ flex: '1 1 140px', position: 'relative' }}>
           <label className="input-label">📅 Pilih Bulan</label>
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(Number(e.target.value))}
+          <div
+            onClick={() => {
+              setMonthDropdownOpen(!monthDropdownOpen);
+              setYearDropdownOpen(false);
+              setSearchSelectOpen(false);
+            }}
             className="input"
-            style={{ cursor: 'pointer' }}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'white',
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: '1.5px solid #E8ECF0',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              color: '#2C3E50',
+              minHeight: '46px',
+            }}
           >
-            {MONTHS.map((m, idx) => (
-              <option key={idx} value={idx}>{m}</option>
-            ))}
-          </select>
+            <span>{MONTHS[selectedMonth]}</span>
+            <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+          </div>
+
+          {monthDropdownOpen && (
+            <>
+              <div 
+                style={{ position: 'fixed', inset: 0, zIndex: 90 }} 
+                onClick={() => setMonthDropdownOpen(false)}
+              />
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #E8ECF0',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                marginTop: '6px',
+                padding: '6px',
+                zIndex: 100,
+                maxHeight: '240px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              }}>
+                {MONTHS.map((m, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setSelectedMonth(idx);
+                      setMonthDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontWeight: idx === selectedMonth ? 800 : 600,
+                      color: idx === selectedMonth ? 'var(--primary)' : '#2C3E50',
+                      background: idx === selectedMonth ? 'var(--bg-cream)' : 'transparent',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (idx !== selectedMonth) e.currentTarget.style.background = '#F2F4F4';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (idx !== selectedMonth) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {m}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-        <div style={{ flex: '1 1 100px' }}>
+        <div style={{ flex: '1 1 100px', position: 'relative' }}>
           <label className="input-label">🗓️ Tahun</label>
-          <select
-            value={selectedYear}
-            onChange={e => setSelectedYear(Number(e.target.value))}
+          <div
+            onClick={() => {
+              setYearDropdownOpen(!yearDropdownOpen);
+              setMonthDropdownOpen(false);
+              setSearchSelectOpen(false);
+            }}
             className="input"
-            style={{ cursor: 'pointer' }}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'white',
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: '1.5px solid #E8ECF0',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              color: '#2C3E50',
+              minHeight: '46px',
+            }}
           >
-            {[2025, 2026, 2027].map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+            <span>{selectedYear}</span>
+            <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+          </div>
+
+          {yearDropdownOpen && (
+            <>
+              <div 
+                style={{ position: 'fixed', inset: 0, zIndex: 90 }} 
+                onClick={() => setYearDropdownOpen(false)}
+              />
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #E8ECF0',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                marginTop: '6px',
+                padding: '6px',
+                zIndex: 100,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+              }}>
+                {[2025, 2026, 2027].map(y => (
+                  <div
+                    key={y}
+                    onClick={() => {
+                      setSelectedYear(y);
+                      setYearDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontWeight: y === selectedYear ? 800 : 600,
+                      color: y === selectedYear ? 'var(--primary)' : '#2C3E50',
+                      background: y === selectedYear ? 'var(--bg-cream)' : 'transparent',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (y !== selectedYear) e.currentTarget.style.background = '#F2F4F4';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (y !== selectedYear) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {y}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 

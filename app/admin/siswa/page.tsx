@@ -47,6 +47,9 @@ export default function AdminSiswaPage() {
   const [searchParentQuery, setSearchParentQuery] = useState('');
   const [searchClassOpen, setSearchClassOpen] = useState(false);
   const [searchClassQuery, setSearchClassQuery] = useState('');
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [bulkClassDropdownOpen, setBulkClassDropdownOpen] = useState(false);
+  const [bulkStatusDropdownOpen, setBulkStatusDropdownOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -590,18 +593,94 @@ export default function AdminSiswaPage() {
                 </div>
               </div>
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">📌 Status Siswa</label>
-                <select
-                  value={status}
-                  onChange={e => setStatus(e.target.value as any)}
+                <div
+                  onClick={() => !saving && setStatusDropdownOpen(!statusDropdownOpen)}
                   className="input"
-                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
-                  disabled={saving}
+                  style={{
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: saving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: statusDropdownOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: statusDropdownOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="active">Aktif (Belajar)</option>
-                  <option value="alumni">Alumni (Lulus)</option>
-                </select>
+                  <span>{status === 'active' ? '🟢 Aktif (Belajar)' : '🔴 Alumni (Lulus)'}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+                </div>
+
+                {statusDropdownOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => setStatusDropdownOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 'calc(100% + 8px)',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      <div
+                        onClick={() => {
+                          setStatus('active');
+                          setStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: status === 'active' ? 800 : 600,
+                          color: status === 'active' ? 'var(--primary)' : '#2C3E50',
+                          background: status === 'active' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        🟢 Aktif (Belajar)
+                      </div>
+                      <div
+                        onClick={() => {
+                          setStatus('alumni');
+                          setStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: status === 'alumni' ? 800 : 600,
+                          color: status === 'alumni' ? 'var(--primary)' : '#2C3E50',
+                          background: status === 'alumni' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        🔴 Alumni (Lulus)
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
@@ -957,35 +1036,216 @@ export default function AdminSiswaPage() {
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">🏫 Pilih Kelas Baru</label>
-                <select
-                  value={bulkClassId}
-                  onChange={e => setBulkClassId(e.target.value)}
+                <div
+                  onClick={() => !bulkSaving && setBulkClassDropdownOpen(!bulkClassDropdownOpen)}
                   className="input"
-                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
-                  disabled={bulkSaving}
+                  style={{
+                    cursor: bulkSaving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: bulkSaving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: bulkClassDropdownOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: bulkClassDropdownOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="">-- Tetap (Tidak Berubah) --</option>
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>Kelas: {c.name}</option>
-                  ))}
-                </select>
+                  <span>
+                    {bulkClassId 
+                      ? `🏫 Kelas: ${classes.find(c => c.id === bulkClassId)?.name}` 
+                      : '-- Tetap (Tidak Berubah) --'}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+                </div>
+
+                {bulkClassDropdownOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => setBulkClassDropdownOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      <div
+                        onClick={() => {
+                          setBulkClassId('');
+                          setBulkClassDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: bulkClassId === '' ? 800 : 600,
+                          color: bulkClassId === '' ? 'var(--primary)' : '#2C3E50',
+                          background: bulkClassId === '' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        -- Tetap (Tidak Berubah) --
+                      </div>
+                      {classes.map(c => (
+                        <div
+                          key={c.id}
+                          onClick={() => {
+                            setBulkClassId(c.id);
+                            setBulkClassDropdownOpen(false);
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: bulkClassId === c.id ? 800 : 600,
+                            color: bulkClassId === c.id ? 'var(--primary)' : '#2C3E50',
+                            background: bulkClassId === c.id ? 'var(--bg-cream)' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                        >
+                          🏫 Kelas: {c.name}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">📌 Pilih Status Baru</label>
-                <select
-                  value={bulkStatus}
-                  onChange={e => setBulkStatus(e.target.value as any)}
+                <div
+                  onClick={() => !bulkSaving && setBulkStatusDropdownOpen(!bulkStatusDropdownOpen)}
                   className="input"
-                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
-                  disabled={bulkSaving}
+                  style={{
+                    cursor: bulkSaving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: bulkSaving ? '#F8F9FA' : 'white',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: bulkStatusDropdownOpen ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: '#2C3E50',
+                    boxShadow: bulkStatusDropdownOpen ? '0 0 0 4px rgba(39, 174, 96, 0.1)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <option value="">-- Tetap (Tidak Berubah) --</option>
-                  <option value="active">Aktif (Belajar)</option>
-                  <option value="alumni">Alumni (Lulus)</option>
-                </select>
+                  <span>
+                    {bulkStatus === '' && '-- Tetap (Tidak Berubah) --'}
+                    {bulkStatus === 'active' && '🟢 Aktif (Belajar)'}
+                    {bulkStatus === 'alumni' && '🔴 Alumni (Lulus)'}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF' }}>▼</span>
+                </div>
+
+                {bulkStatusDropdownOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 110 }} 
+                      onClick={() => setBulkStatusDropdownOpen(false)}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1.5px solid #AED6F1',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                      padding: '8px',
+                      zIndex: 120,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      <div
+                        onClick={() => {
+                          setBulkStatus('');
+                          setBulkStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: bulkStatus === '' ? 800 : 600,
+                          color: bulkStatus === '' ? 'var(--primary)' : '#2C3E50',
+                          background: bulkStatus === '' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        -- Tetap (Tidak Berubah) --
+                      </div>
+                      <div
+                        onClick={() => {
+                          setBulkStatus('active');
+                          setBulkStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: bulkStatus === 'active' ? 800 : 600,
+                          color: bulkStatus === 'active' ? 'var(--primary)' : '#2C3E50',
+                          background: bulkStatus === 'active' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        🟢 Aktif (Belajar)
+                      </div>
+                      <div
+                        onClick={() => {
+                          setBulkStatus('alumni');
+                          setBulkStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontFamily: 'Nunito, sans-serif',
+                          fontWeight: bulkStatus === 'alumni' ? 800 : 600,
+                          color: bulkStatus === 'alumni' ? 'var(--primary)' : '#2C3E50',
+                          background: bulkStatus === 'alumni' ? 'var(--bg-cream)' : 'transparent',
+                          transition: 'background 0.2s',
+                        }}
+                      >
+                        🔴 Alumni (Lulus)
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

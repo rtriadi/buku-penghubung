@@ -135,7 +135,7 @@ export default function PrincipalDashboard() {
               background: 'white',
               padding: '10px 12px',
               borderRadius: '12px',
-              border: classDropdownOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
+              border: classDropdownOpen ? '1.5px solid #8E44AD' : '1.5px solid #E8ECF0',
               fontFamily: 'Nunito, sans-serif',
               fontWeight: 700,
               fontSize: '0.9rem',

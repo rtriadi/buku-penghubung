@@ -128,7 +128,10 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{
+        ['--nav-active-color' as any]: '#8E44AD',
+        ['--nav-active-shadow' as any]: 'rgba(142, 68, 173, 0.25)',
+      }}>
         {NAV_ITEMS.map(item => (
           <Link
             key={item.href}
@@ -151,7 +154,7 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
         ))}
         <button
           onClick={() => setShowProfileModal(true)}
-          className="bottom-nav-item"
+          className={`bottom-nav-item ${showProfileModal ? 'active' : ''}`}
         >
           <span className="nav-icon">👤</span>
           <span>Profil</span>
