@@ -164,7 +164,7 @@ export default function AdminWaliPage() {
   }
 
   async function handleDelete(id: string) {
-    if (confirm('Apakah Anda yakin ingin menghapus wali murid ini beserta seluruh data akunnya?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus wali ini beserta seluruh data akunnya?')) {
       try {
         setLoading(true);
         await deleteUser(id);
@@ -218,7 +218,7 @@ export default function AdminWaliPage() {
         marginBottom: '24px'
       }}>
         <p style={{ fontSize: '0.875rem', color: '#7f8c8d', margin: 0 }}>
-          Kelola data Orang Tua / Wali Murid PAUD Darul Khairat. Akun login dibuat otomatis dengan password default.
+          Kelola data Wali PAUD Darul Khairat. Akun login dibuat otomatis dengan password default.
         </p>
         <button
           onClick={openAddModal}
@@ -253,7 +253,7 @@ export default function AdminWaliPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {parents.length === 0 ? (
               <div style={{ padding: '30px', textAlign: 'center', color: '#AEB6BF', background: 'white', borderRadius: '20px' }}>
-                Belum ada data wali murid terdaftar
+                Belum ada data wali terdaftar
               </div>
             ) : (
               parents.map(parent => (
@@ -337,9 +337,9 @@ export default function AdminWaliPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E8ECF0' }}>
-                  <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>Nama Orang Tua / Wali</th>
+                  <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>Nama Wali</th>
                   <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>📧 Email Login</th>
-                  <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>👧 Anak / Siswa</th>
+                  <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>👶 Anak / Siswa</th>
                   <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E', textAlign: 'right' }}>Aksi</th>
                 </tr>
               </thead>
@@ -347,7 +347,7 @@ export default function AdminWaliPage() {
                 {parents.length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', fontWeight: 700 }}>
-                      Belum ada data wali murid terdaftar
+                      Belum ada data wali terdaftar
                     </td>
                   </tr>
                 ) : (
@@ -499,7 +499,7 @@ export default function AdminWaliPage() {
               )}
 
               <div style={{ position: 'relative' }}>
-                <label className="input-label">👧 Hubungkan ke Siswa</label>
+                <label className="input-label">👶 Hubungkan ke Siswa</label>
                 <div
                   onClick={() => !saving && setSearchSelectOpen(!searchSelectOpen)}
                   className="input"
@@ -526,7 +526,7 @@ export default function AdminWaliPage() {
                         .map(id => students.find(s => s.id === id)?.nickname)
                         .filter(Boolean);
                       return selectedNicknames.length > 0 
-                        ? `👧 ${selectedNicknames.join(', ')}` 
+                        ? `👶 ${selectedNicknames.join(', ')}` 
                         : '-- Hubungkan Siswa (Bisa dikosongkan) --';
                     })()}
                   </span>

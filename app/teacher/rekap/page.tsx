@@ -216,7 +216,7 @@ export default function TeacherRekapPage() {
         marginBottom: '20px'
       }}>
         <div style={{ flex: '2 1 240px', position: 'relative' }}>
-          <label className="input-label">👧 Pilih Siswa</label>
+          <label className="input-label">👶 Pilih Siswa</label>
           <div
             onClick={() => setSearchSelectOpen(!searchSelectOpen)}
             className="input"
@@ -250,9 +250,8 @@ export default function TeacherRekapPage() {
               <div style={{
                 position: 'absolute',
                 top: '100%',
-                left: 0,
                 right: 0,
-                minWidth: '260px',
+                width: '260px',
                 background: 'white',
                 borderRadius: '16px',
                 border: '1px solid #E8ECF0',

@@ -11,6 +11,7 @@ export default function AdminPengumumanPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -22,7 +23,15 @@ export default function AdminPengumumanPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -53,7 +62,14 @@ export default function AdminPengumumanPage() {
   return (
     <div style={{ fontFamily: 'Nunito, sans-serif' }}>
       {/* Page Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        gap: '16px',
+        marginBottom: '24px'
+      }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: '#2C3E50' }}>
             📢 Pengumuman / Informasi
@@ -67,52 +83,175 @@ export default function AdminPengumumanPage() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '8px',
-            padding: '11px 20px',
-            background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
+            padding: '12px 18px',
+            background: 'linear-gradient(135deg, #27AE60, #2ECC71)',
             color: 'white',
-            borderRadius: '14px',
+            borderRadius: '12px',
             fontWeight: 800,
-            fontSize: '0.88rem',
+            fontSize: '0.85rem',
             textDecoration: 'none',
-            boxShadow: '0 4px 12px rgba(39,174,96,0.25)',
+            boxShadow: '0 4px 12px rgba(39,174,96,0.2)',
+            whiteSpace: 'nowrap',
+            width: isMobile ? '100%' : 'auto',
             transition: 'all 0.2s',
+            textAlign: 'center',
           }}
         >
-          ➕ Buat Pengumuman
+          ➕ Buat Pengumuman Baru
         </Link>
       </div>
 
-      {/* Table Card */}
-      <div style={{ background: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#AEB6BF' }}>
-            <div style={{ fontSize: '2rem', animation: 'spin-slow 1s linear infinite' }}>⏳</div>
-            <p style={{ marginTop: '12px', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>Memuat data...</p>
-          </div>
-        ) : announcements.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#AEB6BF' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
-            <p style={{ fontWeight: 700, color: '#5D6D7E', fontFamily: 'Nunito, sans-serif' }}>Belum ada pengumuman</p>
-            <Link href="/admin/pengumuman/baru" style={{ color: '#27AE60', fontWeight: 800, textDecoration: 'none', fontSize: '0.9rem' }}>
-              + Buat pengumuman pertama
-            </Link>
-          </div>
-        ) : (
+      {/* Content */}
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#1E8449', fontFamily: 'Nunito, sans-serif' }}>
+          <div style={{ fontSize: '2rem', animation: 'spin-slow 1s linear infinite', marginBottom: '12px' }}>⏳</div>
+          <p style={{ fontWeight: 700 }}>Memuat data...</p>
+        </div>
+      ) : announcements.length === 0 ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', background: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', border: '1px solid #E8ECF0' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
+          <p style={{ fontWeight: 700, color: '#5D6D7E', fontFamily: 'Nunito, sans-serif', marginBottom: '8px' }}>Belum ada pengumuman</p>
+          <Link href="/admin/pengumuman/baru" style={{ color: '#27AE60', fontWeight: 800, textDecoration: 'none', fontSize: '0.9rem' }}>
+            + Buat pengumuman pertama
+          </Link>
+        </div>
+      ) : isMobile ? (
+        /* Mobile layout: stack of cards */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {announcements.map(a => {
+            const status = getStatus(a);
+            return (
+              <div 
+                key={a.id} 
+                className="card" 
+                style={{ 
+                  padding: '16px', 
+                  border: '1.5px solid #E8ECF0', 
+                  borderRadius: '16px', 
+                  marginBottom: 0,
+                  background: 'white',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50', lineHeight: 1.3 }}>
+                    {a.title}
+                  </h4>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    background: status.bg,
+                    color: status.color,
+                    fontWeight: 800,
+                    fontSize: '0.68rem',
+                    flexShrink: 0,
+                  }}>
+                    {status.label}
+                  </span>
+                </div>
+
+                <p style={{ 
+                  fontSize: '0.78rem', 
+                  color: '#7F8C8D', 
+                  marginBottom: '12px',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  lineHeight: 1.4,
+                }}>
+                  {a.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}
+                </p>
+
+                <div style={{
+                  background: '#F8F9FA',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  fontSize: '0.78rem',
+                  color: '#5D6D7E',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                }}>
+                  <div>📅 <strong>Mulai:</strong> {formatDate(a.startDate)}</div>
+                  <div>⌛ <strong>Selesai:</strong> {formatDate(a.endDate)}</div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #F0F3F4', paddingTop: '12px' }}>
+                  <button
+                    onClick={() => handleToggleActive(a)}
+                    disabled={togglingId === a.id}
+                    style={{
+                      flex: 1,
+                      minWidth: '90px',
+                      background: a.isActive ? '#FDEDEC' : '#E8F8F5',
+                      border: `1px solid ${a.isActive ? '#FADBD8' : '#A9DFBF'}`,
+                      borderRadius: '8px',
+                      padding: '8px',
+                      cursor: togglingId === a.id ? 'not-allowed' : 'pointer',
+                      fontSize: '0.75rem',
+                      color: a.isActive ? '#C0392B' : '#1E8449',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {togglingId === a.id ? '⏳' : a.isActive ? '🔴 Nonaktif' : '🟢 Aktifkan'}
+                  </button>
+
+                  <Link
+                    href={`/admin/pengumuman/${a.id}/edit`}
+                    style={{
+                      flex: 1,
+                      minWidth: '70px',
+                      background: '#F8F9FA',
+                      border: '1px solid #E8ECF0',
+                      borderRadius: '8px',
+                      padding: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      color: '#5D6D7E',
+                      fontWeight: 700,
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    ✏️ Edit
+                  </Link>
+
+                  <button
+                    onClick={() => handleDelete(a.id, a.title)}
+                    disabled={deletingId === a.id}
+                    style={{
+                      background: '#FDEDEC',
+                      border: '1px solid #FADBD8',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
+                      fontSize: '0.75rem',
+                      color: '#E74C3C',
+                    }}
+                  >
+                    {deletingId === a.id ? '⏳' : '🗑️'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Desktop layout: table inside card */
+        <div style={{ background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #E8ECF0', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.87rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: '#F8FAFB' }}>
-                  {['Judul', 'Periode', 'Status', 'Aksi'].map(col => (
+                <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E8ECF0' }}>
+                  {['Judul', 'Periode Pengumuman', 'Status', 'Aksi'].map(col => (
                     <th key={col} style={{
-                      padding: '14px 16px',
-                      textAlign: 'left',
+                      padding: '16px 20px',
                       fontWeight: 800,
                       color: '#5D6D7E',
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #F0F2F5',
                     }}>
                       {col}
                     </th>
@@ -124,97 +263,88 @@ export default function AdminPengumumanPage() {
                   const status = getStatus(a);
                   return (
                     <tr key={a.id} style={{
-                      borderBottom: i < announcements.length - 1 ? '1px solid #F0F2F5' : 'none',
-                      transition: 'background 0.15s',
-                    }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#FAFBFC'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                    >
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: 800, color: '#2C3E50', marginBottom: '3px' }}>{a.title}</div>
+                      borderBottom: i === announcements.length - 1 ? 'none' : '1px solid #E8ECF0',
+                      background: i % 2 === 0 ? '#FAFAFA' : 'white',
+                    }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2C3E50' }}>
+                        <div>{a.title}</div>
                         <div style={{
                           fontSize: '0.75rem',
-                          color: '#5D6D7E',
-                          maxWidth: '280px',
+                          color: '#7F8C8D',
+                          fontWeight: 'normal',
+                          maxWidth: '350px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
+                          marginTop: '3px',
                         }}>
-                          {a.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 80)}...
+                          {a.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}
                         </div>
                       </td>
-                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#2C3E50', fontWeight: 600 }}>
-                          {formatDate(a.startDate)}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#AEB6BF' }}>
-                          s/d {formatDate(a.endDate)}
-                        </div>
+                      <td style={{ padding: '16px 20px', color: '#5D6D7E', fontSize: '0.85rem' }}>
+                        <div><strong>Mulai:</strong> {formatDate(a.startDate)}</div>
+                        <div style={{ marginTop: '2px' }}><strong>Selesai:</strong> {formatDate(a.endDate)}</div>
                       </td>
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '16px 20px' }}>
                         <span style={{
                           display: 'inline-block',
-                          padding: '4px 12px',
-                          borderRadius: '20px',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
                           background: status.bg,
                           color: status.color,
                           fontWeight: 800,
-                          fontSize: '0.73rem',
+                          fontSize: '0.75rem',
                         }}>
                           {status.label}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          {/* Toggle aktif/nonaktif */}
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                           <button
                             onClick={() => handleToggleActive(a)}
                             disabled={togglingId === a.id}
                             style={{
-                              padding: '6px 10px',
+                              background: a.isActive ? '#FDEDEC' : '#E8F8F5',
+                              border: `1px solid ${a.isActive ? '#FADBD8' : '#A9DFBF'}`,
                               borderRadius: '8px',
-                              border: 'none',
-                              background: a.isActive ? '#FEF0EF' : '#EAFAF1',
-                              color: a.isActive ? '#E74C3C' : '#27AE60',
-                              cursor: 'pointer',
+                              padding: '6px 10px',
+                              cursor: togglingId === a.id ? 'not-allowed' : 'pointer',
+                              fontSize: '0.8rem',
+                              color: a.isActive ? '#C0392B' : '#1E8449',
                               fontWeight: 700,
-                              fontSize: '0.75rem',
                               fontFamily: 'Nunito, sans-serif',
                             }}
                           >
                             {togglingId === a.id ? '⏳' : a.isActive ? '🔴 Nonaktifkan' : '🟢 Aktifkan'}
                           </button>
-
-                          {/* Edit */}
                           <Link
                             href={`/admin/pengumuman/${a.id}/edit`}
                             style={{
-                              padding: '6px 10px',
+                              background: '#F8F9FA',
+                              border: '1px solid #E8ECF0',
                               borderRadius: '8px',
-                              background: '#EBF5FB',
-                              color: '#2980B9',
+                              padding: '6px 10px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              color: '#2C3E50',
                               fontWeight: 700,
-                              fontSize: '0.75rem',
                               textDecoration: 'none',
                               display: 'inline-block',
                             }}
                           >
                             ✏️ Edit
                           </Link>
-
-                          {/* Delete */}
                           <button
                             onClick={() => handleDelete(a.id, a.title)}
                             disabled={deletingId === a.id}
                             style={{
-                              padding: '6px 10px',
+                              background: '#FDEDEC',
+                              border: '1px solid #FADBD8',
                               borderRadius: '8px',
-                              border: 'none',
-                              background: '#FEF0EF',
+                              padding: '6px 10px',
+                              cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
+                              fontSize: '0.8rem',
                               color: '#E74C3C',
-                              cursor: 'pointer',
-                              fontWeight: 700,
-                              fontSize: '0.75rem',
                               fontFamily: 'Nunito, sans-serif',
                             }}
                           >
@@ -228,8 +358,8 @@ export default function AdminPengumumanPage() {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

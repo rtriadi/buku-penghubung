@@ -507,12 +507,12 @@ export default function AdminSiswaPage() {
             overflowY: 'auto',
           }}>
             <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 950, fontSize: '1.25rem', color: '#2C3E50', margin: '0 0 20px 0' }}>
-              {editingId ? '✏️ Edit Data Siswa' : '👦 Tambah Siswa Baru'}
+              {editingId ? '✏️ Edit Data Siswa' : '👶 Tambah Siswa Baru'}
             </h3>
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div>
-                <label className="input-label">👧 Nama Lengkap Anak</label>
+                <label className="input-label">👶 Nama Lengkap Anak</label>
                 <input
                   type="text"
                   value={name}

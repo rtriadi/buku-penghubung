@@ -69,7 +69,7 @@ export default function AdminDashboard() {
   }
 
   const statCards = [
-    { label: 'Total Siswa', value: stats.totalSiswa, emoji: '👦', color: '#3498DB', bg: '#EBF5FB' },
+    { label: 'Total Siswa', value: stats.totalSiswa, emoji: '👶', color: '#3498DB', bg: '#EBF5FB' },
     { label: 'Total Guru', value: stats.totalGuru, emoji: '👩‍🏫', color: '#1ABC9C', bg: '#E8F8F5' },
     { label: 'Wali / Orang Tua', value: stats.totalWali, emoji: '👨‍👩', color: '#9B59B6', bg: '#F5EEF8' },
     { label: 'Total Kelas', value: stats.totalKelas, emoji: '🏫', color: '#F1C40F', bg: '#FEF9E7' },
@@ -162,15 +162,15 @@ export default function AdminDashboard() {
             color: '#1ABC9C',
           },
           {
-            title: '👨‍👩 Manajemen Orang Tua / Wali',
-            desc: 'Kelola data wali murid. Akun orang tua otomatis dibuat saat data diinput untuk dapat login dan memantau tumbuh kembang anak.',
+            title: '👨‍👩 Manajemen Wali',
+            desc: 'Kelola data wali. Akun orang tua otomatis dibuat saat data diinput untuk dapat login dan memantau tumbuh kembang anak.',
             link: '/admin/wali',
-            detail: `Total ${stats.totalWali} akun wali murid aktif`,
+            detail: `Total ${stats.totalWali} akun wali aktif`,
             color: '#9B59B6',
           },
           {
-            title: '👦 Manajemen Data Siswa',
-            desc: 'Tambah siswa baru, pasangkan dengan kelas, serta hubungkan ke wali murid yang bertanggung jawab.',
+            title: '👶 Manajemen Data Siswa',
+            desc: 'Tambah siswa baru, pasangkan dengan kelas, serta hubungkan ke wali yang bertanggung jawab.',
             link: '/admin/siswa',
             detail: `Terdaftar ${stats.totalSiswa} anak di sistem`,
             color: '#3498DB',

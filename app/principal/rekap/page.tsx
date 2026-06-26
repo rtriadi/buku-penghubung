@@ -355,7 +355,7 @@ export default function PrincipalRekapPage() {
                 )}
               </div>
               <div style={{ position: 'relative' }}>
-                <label className="input-label">👧 Pilih Siswa</label>
+                <label className="input-label">👶 Pilih Siswa</label>
                 <div
                   onClick={() => setSearchSelectOpen(!searchSelectOpen)}
                   className="input"
@@ -389,9 +389,8 @@ export default function PrincipalRekapPage() {
                     <div style={{
                       position: 'absolute',
                       top: '100%',
-                      left: 0,
                       right: 0,
-                      minWidth: '260px',
+                      width: '260px',
                       background: 'white',
                       borderRadius: '16px',
                       border: '1px solid #E8ECF0',

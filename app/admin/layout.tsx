@@ -78,9 +78,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { href: '/admin', label: 'Dashboard', emoji: '📊' },
-    { href: '/admin/siswa', label: 'Manajemen Siswa', emoji: '👦' },
+    { href: '/admin/siswa', label: 'Manajemen Siswa', emoji: '👶' },
     { href: '/admin/guru', label: 'Manajemen Guru', emoji: '👩‍🏫' },
-    { href: '/admin/wali', label: 'Manajemen Wali Ortu', emoji: '👨‍👩' },
+    { href: '/admin/wali', label: 'Manajemen Wali', emoji: '👨‍👩' },
     { href: '/admin/aktivitas', label: 'Aktivitas Harian', emoji: '⚙️' },
     { href: '/admin/kelas', label: 'Manajemen Kelas', emoji: '🏫' },
     { href: '/admin/pengumuman', label: 'Pengumuman', emoji: '📢' },
