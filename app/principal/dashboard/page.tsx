@@ -226,6 +226,9 @@ export default function PrincipalDashboard() {
                           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#2C3E50' }}>
                             {student.nickname}
                           </span>
+                          {student.status === 'alumni' && (
+                            <span className="badge" style={{ background: '#FDEDEC', color: '#C0392B', fontSize: '0.65rem' }}>Alumni</span>
+                          )}
                           {hasSchoolLog && <span style={{ fontSize: '0.9rem' }}>{kondisiEmoji}</span>}
                           
                           <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
@@ -272,7 +275,12 @@ export default function PrincipalDashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '2.2rem' }}>{selectedStudent.avatarEmoji}</span>
                 <div>
-                  <h3 className="modal-title" style={{ fontSize: '1.05rem', color: '#2C3E50' }}>{selectedStudent.name}</h3>
+                  <h3 className="modal-title" style={{ fontSize: '1.05rem', color: '#2C3E50', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {selectedStudent.name}
+                    {selectedStudent.status === 'alumni' && (
+                      <span className="badge" style={{ background: '#FDEDEC', color: '#C0392B', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px' }}>Alumni</span>
+                    )}
+                  </h3>
                   <p style={{ fontSize: '0.75rem', color: '#7F8C8D' }}>{selectedClass?.name} • Laporan {formatDateIndonesia(selectedDate)}</p>
                 </div>
               </div>

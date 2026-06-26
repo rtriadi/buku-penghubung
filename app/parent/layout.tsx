@@ -35,19 +35,20 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
         setStudentLoading(true);
         try {
           const list = await getStudentsByParent(user.id);
-          setStudents(list);
+          const activeList = list.filter(s => s.status !== 'alumni');
+          setStudents(activeList);
           
-          if (list.length > 0) {
+          if (activeList.length > 0) {
             const storedChildId = localStorage.getItem('buku_penghubung_active_child_id');
-            const foundChild = list.find(s => s.id === storedChildId);
-            const initialChild = foundChild || list[0];
+            const foundChild = activeList.find(s => s.id === storedChildId);
+            const initialChild = foundChild || activeList[0];
             setActiveChild(initialChild);
             localStorage.setItem('buku_penghubung_active_child_id', initialChild.id);
           } else {
             // Fallback to single student link
             if (user.studentId) {
               const fallbackStudent = await getStudentById(user.studentId);
-              if (fallbackStudent) {
+              if (fallbackStudent && fallbackStudent.status !== 'alumni') {
                 setStudents([fallbackStudent]);
                 setActiveChild(fallbackStudent);
                 localStorage.setItem('buku_penghubung_active_child_id', fallbackStudent.id);

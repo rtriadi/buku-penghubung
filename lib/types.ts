@@ -14,6 +14,7 @@ export interface Student {
   parentId: string;
   avatarEmoji: string;
   birthdate: string;
+  status: 'active' | 'alumni';
   createdAt?: string;
 }
 

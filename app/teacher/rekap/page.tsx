@@ -125,14 +125,15 @@ export default function TeacherRekapPage() {
         getHomeLogs()
       ]);
 
-      setStudents(stList);
+      const activeStudents = stList.filter(s => s.status !== 'alumni');
+      setStudents(activeStudents);
       setSchoolActivities(sa);
       setHomeActivities(ha);
       setDailyLogs(dl);
       setHomeLogs(hl);
 
-      if (stList.length > 0) {
-        setSelectedStudentId(stList[0].id);
+      if (activeStudents.length > 0) {
+        setSelectedStudentId(activeStudents[0].id);
       }
     } catch (err) {
       console.error('Error loading rekap data:', err);

@@ -149,10 +149,11 @@ export default function TeacherDashboard() {
         getStudentsByClass(user.classId)
       ]);
 
-      // 2. Fetch logs for today for all students in class
+      // 2. Fetch logs for today for active students in class
+      const activeStudents = stList.filter(s => s.status !== 'alumni');
       const logsMap: { [studentId: string]: DailyLog } = {};
       await Promise.all(
-        stList.map(async (student) => {
+        activeStudents.map(async (student) => {
           const log = await getDailyLog(student.id, today);
           if (log) {
             logsMap[student.id] = log;
@@ -161,7 +162,7 @@ export default function TeacherDashboard() {
       );
 
       setActivities(acts);
-      setStudents(stList);
+      setStudents(activeStudents);
       setLogs(logsMap);
     } catch (err) {
       console.error('Error loading teacher dashboard data:', err);

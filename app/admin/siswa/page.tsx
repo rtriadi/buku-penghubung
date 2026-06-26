@@ -9,7 +9,8 @@ import {
   createStudent,
   updateStudent,
   deleteStudent,
-  updateUser
+  updateUser,
+  bulkUpdateStudents
 } from '@/lib/db';
 import { STUDENT_AVATAR_EMOJIS } from '@/lib/constants';
 import type { Student, User, ClassInfo } from '@/lib/types';
@@ -23,6 +24,13 @@ export default function AdminSiswaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Bulk edit states
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkClassId, setBulkClassId] = useState('');
+  const [bulkStatus, setBulkStatus] = useState<'' | 'active' | 'alumni'>('');
+  const [bulkSaving, setBulkSaving] = useState(false);
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,6 +42,7 @@ export default function AdminSiswaPage() {
   const [parentId, setParentId] = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState('🦁');
   const [birthdate, setBirthdate] = useState('2020-01-01');
+  const [status, setStatus] = useState<'active' | 'alumni'>('active');
   const [searchParentOpen, setSearchParentOpen] = useState(false);
   const [searchParentQuery, setSearchParentQuery] = useState('');
   const [searchClassOpen, setSearchClassOpen] = useState(false);
@@ -53,6 +62,7 @@ export default function AdminSiswaPage() {
 
   async function refreshList() {
     setLoading(true);
+    setSelectedIds([]);
     try {
       const [st, us, cl] = await Promise.all([
         getStudents(),
@@ -82,6 +92,7 @@ export default function AdminSiswaPage() {
     setParentId('');
     setAvatarEmoji('🦁');
     setBirthdate('2020-01-01');
+    setStatus('active');
     setSearchParentOpen(false);
     setSearchParentQuery('');
     setSearchClassOpen(false);
@@ -97,6 +108,7 @@ export default function AdminSiswaPage() {
     setParentId(student.parentId || '');
     setAvatarEmoji(student.avatarEmoji);
     setBirthdate(student.birthdate);
+    setStatus(student.status || 'active');
     setSearchParentOpen(false);
     setSearchParentQuery('');
     setSearchClassOpen(false);
@@ -115,6 +127,7 @@ export default function AdminSiswaPage() {
       parentId,
       avatarEmoji,
       birthdate,
+      status,
     };
 
     try {
@@ -143,6 +156,20 @@ export default function AdminSiswaPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === students.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(students.map(s => s.id));
+    }
+  }
+
+  function toggleSelectStudent(id: string) {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   }
 
   async function handleDelete(id: string) {
@@ -193,9 +220,29 @@ export default function AdminSiswaPage() {
         gap: '16px',
         marginBottom: '24px'
       }}>
-        <p style={{ fontSize: '0.875rem', color: '#7f8c8d', margin: 0 }}>
-          Kelola data siswa PAUD Darul Khairat. Pasangkan siswa dengan kelas dan orang tua / wali.
-        </p>
+        <div>
+          <p style={{ fontSize: '0.875rem', color: '#7f8c8d', margin: 0 }}>
+            Kelola data siswa PAUD Darul Khairat. Pasangkan siswa dengan kelas dan orang tua / wali.
+          </p>
+          {isMobile && students.length > 0 && (
+            <button
+              onClick={toggleSelectAll}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#27AE60',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                padding: '6px 0',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                marginTop: '6px'
+              }}
+            >
+              {selectedIds.length === students.length ? '☑️ Batal Pilih Semua' : '⏹️ Pilih Semua Siswa'}
+            </button>
+          )}
+        </div>
         <button
           onClick={openAddModal}
           disabled={loading}
@@ -233,11 +280,38 @@ export default function AdminSiswaPage() {
               </div>
             ) : (
               students.map(student => (
-                <div key={student.id} className="card" style={{ padding: '16px', border: '1.5px solid #E8ECF0', borderRadius: '16px', marginBottom: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div 
+                  key={student.id} 
+                  className="card" 
+                  style={{ 
+                    padding: '16px', 
+                    border: selectedIds.includes(student.id) ? '1.5px solid #27AE60' : '1.5px solid #E8ECF0', 
+                    borderRadius: '16px', 
+                    marginBottom: 0,
+                    position: 'relative',
+                    background: selectedIds.includes(student.id) ? '#E8F8F5' : 'white',
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(student.id)}
+                      onChange={() => toggleSelectStudent(student.id)}
+                      style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', paddingRight: '24px' }}>
                     <span style={{ fontSize: '2.5rem' }}>{student.avatarEmoji}</span>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50' }}>{student.name}</h4>
+                      <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {student.name}
+                        {student.status === 'alumni' ? (
+                          <span style={{ fontSize: '0.65rem', background: '#FDEDEC', color: '#C0392B', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Alumni</span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', background: '#D5F5E3', color: '#1E8449', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Aktif</span>
+                        )}
+                      </h4>
                       <span style={{ fontSize: '0.75rem', color: '#7f8c8d', background: '#F0F3F4', padding: '2px 6px', borderRadius: '4px' }}>
                         Panggilan: {student.nickname}
                       </span>
@@ -307,6 +381,14 @@ export default function AdminSiswaPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E8ECF0' }}>
+                  <th style={{ padding: '16px 20px', width: '40px' }}>
+                    <input
+                      type="checkbox"
+                      checked={students.length > 0 && selectedIds.length === students.length}
+                      onChange={toggleSelectAll}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                    />
+                  </th>
                   <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>Nama Lengkap (Panggilan)</th>
                   <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>🏫 Kelas</th>
                   <th style={{ padding: '16px 20px', fontWeight: 800, color: '#5D6D7E' }}>👨‍👩 Orang Tua / Wali</th>
@@ -317,7 +399,7 @@ export default function AdminSiswaPage() {
               <tbody>
                 {students.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', fontWeight: 700 }}>
+                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#AEB6BF', fontWeight: 700 }}>
                       Belum ada data siswa terdaftar
                     </td>
                   </tr>
@@ -325,12 +407,27 @@ export default function AdminSiswaPage() {
                   students.map((student, idx) => (
                     <tr key={student.id} style={{
                       borderBottom: idx === students.length - 1 ? 'none' : '1px solid #E8ECF0',
-                      background: idx % 2 === 0 ? '#FAFAFA' : 'white',
+                      background: selectedIds.includes(student.id) ? '#E8F8F5' : idx % 2 === 0 ? '#FAFAFA' : 'white',
                     }}>
+                      <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(student.id)}
+                          onChange={() => toggleSelectStudent(student.id)}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                        />
+                      </td>
                       <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2C3E50', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '1.8rem' }}>{student.avatarEmoji}</span>
                         <div>
-                          <div>{student.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {student.name}
+                            {student.status === 'alumni' ? (
+                              <span style={{ fontSize: '0.75rem', background: '#FDEDEC', color: '#C0392B', padding: '2px 8px', borderRadius: '999px', fontWeight: 'bold' }}>Alumni</span>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', background: '#D5F5E3', color: '#1E8449', padding: '2px 8px', borderRadius: '999px', fontWeight: 'bold' }}>Aktif</span>
+                            )}
+                          </div>
                           <span style={{ fontSize: '0.75rem', color: '#7f8c8d', background: '#F0F3F4', padding: '2px 6px', borderRadius: '4px' }}>
                             Panggilan: {student.nickname}
                           </span>
@@ -491,6 +588,20 @@ export default function AdminSiswaPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="input-label">📌 Status Siswa</label>
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value as any)}
+                  className="input"
+                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+                  disabled={saving}
+                >
+                  <option value="active">Aktif (Belajar)</option>
+                  <option value="alumni">Alumni (Lulus)</option>
+                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
@@ -748,6 +859,182 @@ export default function AdminSiswaPage() {
                 </button>
               </div>
             </form>
+           </div>
+         </div>
+       )}
+
+      {/* Floating Bulk Edit Bar */}
+      {selectedIds.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(44, 62, 80, 0.95)',
+          backdropFilter: 'blur(10px)',
+          padding: '12px 24px',
+          borderRadius: '20px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 90,
+          color: 'white',
+          width: '90%',
+          maxWidth: '500px',
+          justifyContent: 'space-between',
+          border: '1.5px solid rgba(255,255,255,0.1)'
+        }} className="animate-fade-in-up">
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
+            Dipilih: <span style={{ color: '#2ECC71', fontSize: '1rem', fontWeight: 900 }}>{selectedIds.length}</span> siswa
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => {
+                setBulkClassId('');
+                setBulkStatus('');
+                setShowBulkModal(true);
+              }}
+              style={{
+                background: '#27AE60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '8px 14px',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(39,174,96,0.3)'
+              }}
+            >
+              ⚙️ Edit Masal
+            </button>
+            <button
+              onClick={() => setSelectedIds([])}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: '#ECF0F1',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '8px 12px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Masal (Bulk Edit Modal) */}
+      {showBulkModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            padding: '28px',
+            width: '100%',
+            maxWidth: '450px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+          }}>
+            <h3 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 950, fontSize: '1.25rem', color: '#2C3E50', margin: '0 0 8px 0' }}>
+              ⚙️ Edit Masal ({selectedIds.length} Siswa)
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#7f8c8d', marginBottom: '20px' }}>
+              Perbarui kelas dan status untuk seluruh siswa yang dipilih sekaligus.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label className="input-label">🏫 Pilih Kelas Baru</label>
+                <select
+                  value={bulkClassId}
+                  onChange={e => setBulkClassId(e.target.value)}
+                  className="input"
+                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+                  disabled={bulkSaving}
+                >
+                  <option value="">-- Tetap (Tidak Berubah) --</option>
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>Kelas: {c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="input-label">📌 Pilih Status Baru</label>
+                <select
+                  value={bulkStatus}
+                  onChange={e => setBulkStatus(e.target.value as any)}
+                  className="input"
+                  style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+                  disabled={bulkSaving}
+                >
+                  <option value="">-- Tetap (Tidak Berubah) --</option>
+                  <option value="active">Aktif (Belajar)</option>
+                  <option value="alumni">Alumni (Lulus)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowBulkModal(false)}
+                  className="btn btn-outline"
+                  disabled={bulkSaving}
+                  style={{ flex: 1, padding: '12px' }}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!bulkClassId && !bulkStatus) {
+                      alert('Silakan pilih kelas baru atau status baru yang ingin diubah.');
+                      return;
+                    }
+                    try {
+                      setBulkSaving(true);
+                      await bulkUpdateStudents(selectedIds, {
+                        classId: bulkClassId || undefined,
+                        status: bulkStatus || undefined
+                      });
+                      setSelectedIds([]);
+                      setShowBulkModal(false);
+                      await refreshList();
+                      alert('Berhasil mengedit data siswa secara masal!');
+                    } catch (err) {
+                      console.error('Error bulk updating students:', err);
+                      alert('Gagal memperbarui data siswa secara masal.');
+                    } finally {
+                      setBulkSaving(false);
+                    }
+                  }}
+                  className="btn btn-primary"
+                  disabled={bulkSaving || (!bulkClassId && !bulkStatus)}
+                  style={{ 
+                    flex: 1, 
+                    padding: '12px',
+                    background: 'linear-gradient(135deg, #27AE60, #2ECC71)',
+                    border: 'none',
+                    color: 'white',
+                  }}
+                >
+                  {bulkSaving ? 'Memproses...' : 'Simpan Masal 💾'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

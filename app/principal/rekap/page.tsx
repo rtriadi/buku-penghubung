@@ -259,7 +259,7 @@ export default function PrincipalRekapPage() {
                   }}
                 >
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
-                    {student ? `${student.avatarEmoji} ${student.name}` : 'Pilih Siswa'}
+                    {student ? `${student.avatarEmoji} ${student.name}${student.status === 'alumni' ? ' (Alumni)' : ''}` : 'Pilih Siswa'}
                   </span>
                   <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
                 </div>
@@ -330,6 +330,9 @@ export default function PrincipalRekapPage() {
                             >
                               <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji}</span>
                               <span>{s.name}</span>
+                              {s.status === 'alumni' && (
+                                <span style={{ fontSize: '0.7rem', background: '#FDEDEC', color: '#C0392B', padding: '2px 6px', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold' }}>Alumni</span>
+                              )}
                             </div>
                           ))
                         ) : (

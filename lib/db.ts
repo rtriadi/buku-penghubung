@@ -32,6 +32,7 @@ export function mapStudent(s: any): Student {
     parentId: s.parent_id || undefined,
     avatarEmoji: s.avatar_emoji || '🦁',
     birthdate: s.birthdate,
+    status: s.status || 'active',
     createdAt: s.created_at,
   };
 }
@@ -333,6 +334,7 @@ export async function createStudent(data: Omit<Student, 'id' | 'createdAt'>): Pr
         parent_id: data.parentId || null,
         avatar_emoji: data.avatarEmoji,
         birthdate: data.birthdate,
+        status: data.status || 'active',
       })
       .select()
       .single();
@@ -354,6 +356,7 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
     if (data.parentId !== undefined) dbData.parent_id = data.parentId || null;
     if (data.avatarEmoji !== undefined) dbData.avatar_emoji = data.avatarEmoji;
     if (data.birthdate !== undefined) dbData.birthdate = data.birthdate;
+    if (data.status !== undefined) dbData.status = data.status;
 
     const { data: updated, error } = await supabase
       .from('students')
@@ -366,6 +369,30 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
     return updated ? mapStudent(updated) : undefined;
   } catch (err) {
     console.error('updateStudent error:', err);
+    throw err;
+  }
+}
+
+export async function bulkUpdateStudents(
+  studentIds: string[],
+  data: { classId?: string; status?: 'active' | 'alumni' }
+): Promise<boolean> {
+  try {
+    if (studentIds.length === 0) return true;
+
+    const dbData: any = {};
+    if (data.classId !== undefined) dbData.class_id = data.classId;
+    if (data.status !== undefined) dbData.status = data.status;
+
+    const { error } = await supabase
+      .from('students')
+      .update(dbData)
+      .in('id', studentIds);
+
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('bulkUpdateStudents error:', err);
     throw err;
   }
 }
