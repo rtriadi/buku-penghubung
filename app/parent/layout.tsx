@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { SCHOOL_NAME } from '@/lib/constants';
 import { getGreeting } from '@/lib/utils';
-import { getStudentById } from '@/lib/db';
+import { getStudentById, getStudentsByParent } from '@/lib/db';
 import type { Student } from '@/lib/types';
 
 const NAV_ITEMS = [
@@ -18,7 +18,8 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [student, setStudent] = useState<Student | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [activeChild, setActiveChild] = useState<Student | null>(null);
   const [studentLoading, setStudentLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -29,16 +30,32 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
   }, [user, isLoading, router]);
 
   useEffect(() => {
-    async function loadStudent() {
-      if (user?.studentId) {
+    async function loadStudents() {
+      if (user) {
         setStudentLoading(true);
         try {
-          const st = await getStudentById(user.studentId);
-          if (st) {
-            setStudent(st);
+          const list = await getStudentsByParent(user.id);
+          setStudents(list);
+          
+          if (list.length > 0) {
+            const storedChildId = localStorage.getItem('buku_penghubung_active_child_id');
+            const foundChild = list.find(s => s.id === storedChildId);
+            const initialChild = foundChild || list[0];
+            setActiveChild(initialChild);
+            localStorage.setItem('buku_penghubung_active_child_id', initialChild.id);
+          } else {
+            // Fallback to single student link
+            if (user.studentId) {
+              const fallbackStudent = await getStudentById(user.studentId);
+              if (fallbackStudent) {
+                setStudents([fallbackStudent]);
+                setActiveChild(fallbackStudent);
+                localStorage.setItem('buku_penghubung_active_child_id', fallbackStudent.id);
+              }
+            }
           }
         } catch (err) {
-          console.error('Error loading student in layout:', err);
+          console.error('Error loading parent students:', err);
         } finally {
           setStudentLoading(false);
         }
@@ -47,7 +64,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
       }
     }
     if (user) {
-      loadStudent();
+      loadStudents();
     }
   }, [user]);
 
@@ -90,25 +107,58 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             />
             <div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '0.95rem', color: 'white', lineHeight: 1.2 }}>
-                {student ? `Orang Tua ${student.nickname}` : 'Buku Penghubung'}
+                {activeChild ? `Orang Tua ${activeChild.nickname}` : 'Buku Penghubung'}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
                 {getGreeting()}, {user.name.split(' ')[0]}! 👋
               </div>
             </div>
           </div>
-          <button
-            onClick={() => { logout(); router.replace('/login'); }}
-            style={{
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none', borderRadius: '10px',
-              padding: '8px 12px', color: 'white',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 700,
-              fontSize: '0.8rem', cursor: 'pointer',
-            }}
-          >
-            Keluar
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {students.length > 1 && (
+              <select
+                value={activeChild?.id || ''}
+                onChange={(e) => {
+                  const child = students.find(s => s.id === e.target.value);
+                  if (child) {
+                    setActiveChild(child);
+                    localStorage.setItem('buku_penghubung_active_child_id', child.id);
+                    window.dispatchEvent(new Event('activeChildChanged'));
+                  }
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '8px 12px',
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {students.map(s => (
+                  <option key={s.id} value={s.id} style={{ color: 'var(--text-dark)' }}>
+                    👶 {s.nickname}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              onClick={() => { logout(); router.replace('/login'); }}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none', borderRadius: '10px',
+                padding: '8px 12px', color: 'white',
+                fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+                fontSize: '0.8rem', cursor: 'pointer',
+              }}
+            >
+              Keluar
+            </button>
+          </div>
         </div>
       </header>
 
@@ -169,18 +219,37 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
                 {user.name}
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--accent-blue)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
-                👨‍👩 Orang Tua {student?.nickname ? `Wali ${student.nickname}` : 'Wali'}
+                👨‍👩 Orang Tua {activeChild?.nickname ? `Wali ${activeChild.nickname}` : 'Wali'}
               </p>
               <div style={{ background: '#F8F9FA', borderRadius: '12px', padding: '12px 14px', textAlign: 'left', marginBottom: '20px', border: '1px solid #F0F2F5' }}>
                 <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '2px' }}>📧 Email Akun</div>
                 <div style={{ fontSize: '0.85rem', color: '#2C3E50', fontWeight: 700, wordBreak: 'break-all' }}>{user.email}</div>
                 
-                {student && (
+                {students.length > 0 ? (
                   <>
                     <div style={{ height: '1px', background: '#F0F2F5', margin: '8px 0' }} />
-                    <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '2px' }}>👶 Siswa Pantauan</div>
-                    <div style={{ fontSize: '0.85rem', color: '#2C3E50', fontWeight: 700 }}>{student.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '4px' }}>👶 Daftar Anak</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {students.map(s => (
+                        <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: s.id === activeChild?.id ? '#EBF5FB' : 'transparent', padding: '6px 8px', borderRadius: '8px' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#2C3E50', fontWeight: s.id === activeChild?.id ? 800 : 500 }}>
+                            {s.avatarEmoji} {s.name}
+                          </span>
+                          {s.id === activeChild?.id && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--accent-blue)', fontWeight: 'bold' }}>Aktif</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </>
+                ) : (
+                  activeChild && (
+                    <>
+                      <div style={{ height: '1px', background: '#F0F2F5', margin: '8px 0' }} />
+                      <div style={{ fontSize: '0.72rem', color: '#AEB6BF', marginBottom: '2px' }}>👶 Siswa Pantauan</div>
+                      <div style={{ fontSize: '0.85rem', color: '#2C3E50', fontWeight: 700 }}>{activeChild.name}</div>
+                    </>
+                  )
                 )}
                 
                 <div style={{ height: '1px', background: '#F0F2F5', margin: '8px 0' }} />

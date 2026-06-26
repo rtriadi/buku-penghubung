@@ -73,12 +73,43 @@ export default function ParentRekapPage() {
     pdfPages.push([]);
   }
 
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Set initial child ID from localStorage
+    const storedId = localStorage.getItem('buku_penghubung_active_child_id');
+    setActiveChildId(storedId || user?.studentId || null);
+
+    const handleChildChanged = () => {
+      const newId = localStorage.getItem('buku_penghubung_active_child_id');
+      setActiveChildId(newId || user?.studentId || null);
+    };
+
+    window.addEventListener('activeChildChanged', handleChildChanged);
+    return () => {
+      window.removeEventListener('activeChildChanged', handleChildChanged);
+    };
+  }, [user]);
+
   useEffect(() => {
     setMounted(true);
-    if (user?.studentId) {
-      loadRekapData();
+    if (activeChildId) {
+      loadRekapData(activeChildId);
+    } else {
+      if (user) {
+        const storedId = localStorage.getItem('buku_penghubung_active_child_id');
+        if (storedId) {
+          setActiveChildId(storedId);
+        } else if (user.studentId) {
+          setActiveChildId(user.studentId);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
     }
-  }, [user]);
+  }, [user, activeChildId]);
 
   useEffect(() => {
     async function fetchTeacher() {
@@ -107,12 +138,11 @@ export default function ParentRekapPage() {
     }
   }, [student]);
 
-  async function loadRekapData() {
-    if (!user?.studentId) return;
+  async function loadRekapData(childId: string) {
     setLoading(true);
     try {
       const [st, sa, ha, dl, hl] = await Promise.all([
-        getStudentById(user.studentId),
+        getStudentById(childId),
         getActiveSchoolActivities(),
         getActiveHomeActivities(),
         getDailyLogs(),

@@ -151,10 +151,14 @@ export default function AdminSiswaPage() {
         setLoading(true);
         await deleteStudent(id);
         
-        // Clear student link on any parent
+        // Clear student link on any parent, keeping other children if they exist
         const linkedParents = parents.filter(u => u.studentId === id);
         await Promise.all(
-          linkedParents.map(p => updateUser(p.id, { studentId: null as any }))
+          linkedParents.map(async (p) => {
+            const otherStudents = students.filter(s => s.parentId === p.id && s.id !== id);
+            const nextStudentId = otherStudents.length > 0 ? otherStudents[0].id : null;
+            await updateUser(p.id, { studentId: nextStudentId as any });
+          })
         );
 
         await refreshList();

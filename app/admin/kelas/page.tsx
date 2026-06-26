@@ -433,6 +433,9 @@ export default function AdminKelasPage() {
                   </>
                 )}
               </div>
+              <span style={{ fontSize: '0.72rem', color: '#7f8c8d', display: 'block', marginTop: '-12px', marginBottom: '12px', lineHeight: 1.3 }}>
+                * Wali Kelas adalah penanggung jawab utama kelas ini. Guru-guru pengajar lain yang memiliki tugas di kelas ini tetap dapat melihat & mengisi catatan harian.
+              </span>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button

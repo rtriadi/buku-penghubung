@@ -3,7 +3,7 @@
 // Replaces the local memory/localStorage store with actual server integration.
 
 import { supabase } from './supabase';
-import type { User, Student, DailyLog, HomeLog, ClassInfo, SchoolActivity, HomeActivity, AccountCredentials } from './types';
+import type { User, Student, DailyLog, HomeLog, ClassInfo, SchoolActivity, HomeActivity, AccountCredentials, Role } from './types';
 
 export const DEFAULT_PASSWORD = 'dkhairat2024';
 
@@ -15,7 +15,7 @@ export function mapProfile(p: any): User {
   return {
     id: p.id,
     name: p.name || 'User',
-    role: p.role as 'admin' | 'teacher' | 'parent',
+    role: p.role as Role,
     email: p.email || '',
     classId: p.class_id || undefined,
     studentId: p.student_id || undefined,
@@ -172,27 +172,6 @@ export async function createUser(user: Omit<User, 'id' | 'createdAt'>): Promise<
 
   const data = await res.json();
 
-  // Sync classes.teacher_id if classId is set
-  if (user.role === 'teacher' && user.classId) {
-    // 1. Remove this teacher from any other class they were assigned to (just in case)
-    await supabase
-      .from('classes')
-      .update({ teacher_id: null })
-      .eq('teacher_id', data.user.id);
-    
-    // 2. Set any other teacher currently assigned to this new class to have class_id = null in profiles
-    await supabase
-      .from('profiles')
-      .update({ class_id: null })
-      .eq('class_id', user.classId);
-
-    // 3. Assign this teacher to the class
-    await supabase
-      .from('classes')
-      .update({ teacher_id: data.user.id })
-      .eq('id', user.classId);
-  }
-
   return {
     user: data.user,
     credentials: {
@@ -212,7 +191,7 @@ export async function updateUser(id: string, data: Partial<User>): Promise<User 
     if (data.classId !== undefined) dbData.class_id = data.classId || null;
     if (data.studentId !== undefined) dbData.student_id = data.studentId || null;
 
-    // Sync relationships between profiles.class_id and classes.teacher_id
+    // Sync relationships: clear old class's Wali Kelas if this teacher was the Wali Kelas
     if (data.classId !== undefined) {
       const { data: currentProfile } = await supabase
         .from('profiles')
@@ -224,25 +203,12 @@ export async function updateUser(id: string, data: Partial<User>): Promise<User 
       const newClassId = data.classId || null;
 
       if (oldClassId !== newClassId) {
-        // 1. Remove teacher from old class
         if (oldClassId) {
           await supabase
             .from('classes')
             .update({ teacher_id: null })
-            .eq('id', oldClassId);
-        }
-        // 2. Assign teacher to new class
-        if (newClassId) {
-          // Remove any other teacher currently assigned to this new class
-          await supabase
-            .from('profiles')
-            .update({ class_id: null })
-            .eq('class_id', newClassId);
-
-          await supabase
-            .from('classes')
-            .update({ teacher_id: id })
-            .eq('id', newClassId);
+            .eq('id', oldClassId)
+            .eq('teacher_id', id);
         }
       }
     }
@@ -335,6 +301,22 @@ export async function getStudentsByClass(classId: string): Promise<Student[]> {
     return (data || []).map(mapStudent);
   } catch (err) {
     console.error('getStudentsByClass error:', err);
+    return [];
+  }
+}
+
+export async function getStudentsByParent(parentId: string): Promise<Student[]> {
+  try {
+    const { data, error } = await supabase
+      .from('students')
+      .select('*')
+      .eq('parent_id', parentId)
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map(mapStudent);
+  } catch (err) {
+    console.error('getStudentsByParent error:', err);
     return [];
   }
 }
@@ -781,21 +763,15 @@ export async function updateClass(id: string, data: Partial<ClassInfo>): Promise
       const newTeacherId = data.teacherId || null;
 
       if (oldTeacherId !== newTeacherId) {
-        // 1. Remove old teacher's class assignment
-        if (oldTeacherId) {
-          await supabase
-            .from('profiles')
-            .update({ class_id: null })
-            .eq('id', oldTeacherId);
-        }
-        // 2. Assign new teacher to class
+        // Assign new teacher to class as Wali Kelas
         if (newTeacherId) {
-          // Remove new teacher from any other class they were assigned to
+          // Remove new teacher from being wali kelas of any other class
           await supabase
             .from('classes')
             .update({ teacher_id: null })
             .eq('teacher_id', newTeacherId);
 
+          // Ensure the new teacher is assigned to this class in their profile
           await supabase
             .from('profiles')
             .update({ class_id: id })

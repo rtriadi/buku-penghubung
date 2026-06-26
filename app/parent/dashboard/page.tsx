@@ -39,23 +39,51 @@ export default function ParentDashboard() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' });
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Set initial child ID from localStorage
+    const storedId = localStorage.getItem('buku_penghubung_active_child_id');
+    setActiveChildId(storedId || user?.studentId || null);
+
+    const handleChildChanged = () => {
+      const newId = localStorage.getItem('buku_penghubung_active_child_id');
+      setActiveChildId(newId || user?.studentId || null);
+    };
+
+    window.addEventListener('activeChildChanged', handleChildChanged);
+    return () => {
+      window.removeEventListener('activeChildChanged', handleChildChanged);
+    };
+  }, [user]);
 
   useEffect(() => {
     setMounted(true);
     
     async function loadData() {
-      if (!user?.studentId) {
+      if (!activeChildId) {
+        if (user) {
+          const storedId = localStorage.getItem('buku_penghubung_active_child_id');
+          if (storedId) {
+            setActiveChildId(storedId);
+            return;
+          }
+          if (user.studentId) {
+            setActiveChildId(user.studentId);
+            return;
+          }
+        }
         setLoading(false);
         return;
       }
       setLoading(true);
       try {
         const [st, sa, ha, sLog, hLog] = await Promise.all([
-          getStudentById(user.studentId),
+          getStudentById(activeChildId),
           getActiveSchoolActivities(),
           getActiveHomeActivities(),
-          getDailyLog(user.studentId, selectedDate),
-          getHomeLog(user.studentId, selectedDate)
+          getDailyLog(activeChildId, selectedDate),
+          getHomeLog(activeChildId, selectedDate)
         ]);
 
         if (st) {
@@ -85,7 +113,7 @@ export default function ParentDashboard() {
     }
 
     loadData();
-  }, [user, selectedDate]);
+  }, [user, selectedDate, activeChildId]);
 
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ show: true, message, type });

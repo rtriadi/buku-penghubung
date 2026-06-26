@@ -34,7 +34,7 @@ export default function AdminWaliPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(DEFAULT_PASSWORD);
-  const [studentId, setStudentId] = useState('');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [searchSelectOpen, setSearchSelectOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -73,7 +73,7 @@ export default function AdminWaliPage() {
     setName('');
     setEmail('');
     setPassword(DEFAULT_PASSWORD);
-    setStudentId('');
+    setSelectedStudentIds([]);
     setSearchSelectOpen(false);
     setSearchQuery('');
     setShowModal(true);
@@ -84,7 +84,8 @@ export default function AdminWaliPage() {
     setName(parent.name);
     setEmail(parent.email);
     setPassword(parent.password || DEFAULT_PASSWORD);
-    setStudentId(parent.studentId || '');
+    const parentChildren = students.filter(s => s.parentId === parent.id).map(s => s.id);
+    setSelectedStudentIds(parentChildren);
     setSearchSelectOpen(false);
     setSearchQuery('');
     setShowModal(true);
@@ -96,21 +97,18 @@ export default function AdminWaliPage() {
 
     try {
       setSaving(true);
+      const parentData = {
+        name,
+        email,
+        studentId: selectedStudentIds[0] || null as any, // keep reverse link on profile compatible
+      };
+
+      let parentId: string;
+
       if (editingId) {
         // Update parent profile
-        await updateUser(editingId, {
-          name,
-          email,
-          studentId: studentId || null as any,
-        });
-
-        // Update student parent link
-        if (studentId) {
-          await updateStudent(studentId, { parentId: editingId });
-        }
-
-        await refreshList();
-        setShowModal(false);
+        await updateUser(editingId, parentData);
+        parentId = editingId;
       } else {
         // Create new parent
         const { user: parentUser, credentials } = await createUser({
@@ -118,19 +116,30 @@ export default function AdminWaliPage() {
           email,
           role: 'parent',
           password,
-          studentId: studentId || undefined,
+          studentId: selectedStudentIds[0] || undefined,
         });
-
-        // Update student parent link
-        if (studentId) {
-          await updateStudent(studentId, { parentId: parentUser.id });
-        }
-
+        parentId = parentUser.id;
         setCreds(credentials);
-        await refreshList();
-        setShowModal(false);
-        setShowCredsModal(true);
       }
+
+      // Update student parent links in db
+      const currentChildren = students.filter(s => s.parentId === parentId);
+      const currentChildrenIds = currentChildren.map(s => s.id);
+
+      // Link newly selected children
+      const toLink = selectedStudentIds.filter(id => !currentChildrenIds.includes(id));
+      await Promise.all(
+        toLink.map(sid => updateStudent(sid, { parentId }))
+      );
+
+      // Unlink deselected children
+      const toUnlink = currentChildrenIds.filter(id => !selectedStudentIds.includes(id));
+      await Promise.all(
+        toUnlink.map(sid => updateStudent(sid, { parentId: '' }))
+      );
+
+      await refreshList();
+      setShowModal(false);
     } catch (err: any) {
       console.error('Error saving parent:', err);
       alert(err.message || 'Gagal mendaftarkan wali baru.');
@@ -175,10 +184,10 @@ export default function AdminWaliPage() {
     }
   }
 
-  function getLinkedStudentName(parent: User): string {
-    if (!parent.studentId) return 'Belum Dihubungkan';
-    const student = students.find(s => s.id === parent.studentId);
-    return student ? `${student.avatarEmoji} ${student.nickname}` : 'Siswa Tidak Ditemukan';
+  function getLinkedStudentsList(parent: User): string {
+    const parentChildren = students.filter(s => s.parentId === parent.id);
+    if (parentChildren.length === 0) return 'Belum Dihubungkan';
+    return parentChildren.map(s => `${s.avatarEmoji} ${s.nickname}`).join(', ');
   }
 
   return (
@@ -239,12 +248,12 @@ export default function AdminWaliPage() {
                     <span style={{
                       fontSize: '0.7rem',
                       fontWeight: 800,
-                      background: parent.studentId ? '#EBF5FB' : '#FDEDEC',
-                      color: parent.studentId ? '#2980B9' : '#E74C3C',
+                      background: students.some(s => s.parentId === parent.id) ? '#EBF5FB' : '#FDEDEC',
+                      color: students.some(s => s.parentId === parent.id) ? '#2980B9' : '#E74C3C',
                       padding: '3px 8px',
                       borderRadius: '6px',
                     }}>
-                      Anak: {getLinkedStudentName(parent)}
+                      Anak: {getLinkedStudentsList(parent)}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#7f8c8d', fontFamily: 'monospace' }}>
@@ -342,12 +351,12 @@ export default function AdminWaliPage() {
                         <span style={{
                           fontSize: '0.75rem',
                           fontWeight: 800,
-                          background: parent.studentId ? '#EBF5FB' : '#FDEDEC',
-                          color: parent.studentId ? '#2980B9' : '#E74C3C',
+                          background: students.some(s => s.parentId === parent.id) ? '#EBF5FB' : '#FDEDEC',
+                          color: students.some(s => s.parentId === parent.id) ? '#2980B9' : '#E74C3C',
                           padding: '4px 10px',
                           borderRadius: '8px',
                         }}>
-                          {getLinkedStudentName(parent)}
+                          {getLinkedStudentsList(parent)}
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
@@ -498,13 +507,17 @@ export default function AdminWaliPage() {
                 >
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
                     {(() => {
-                      const selectedStudent = students.find(s => s.id === studentId);
-                      return selectedStudent 
-                        ? `${selectedStudent.avatarEmoji || '🦁'} ${selectedStudent.name} (${selectedStudent.classId?.toUpperCase().replace('-', ' ')})` 
-                        : '-- Pilih Siswa (Bisa dikosongkan) --';
+                      const selectedNicknames = selectedStudentIds
+                        .map(id => students.find(s => s.id === id)?.nickname)
+                        .filter(Boolean);
+                      return selectedNicknames.length > 0 
+                        ? `👧 ${selectedNicknames.join(', ')}` 
+                        : '-- Hubungkan Siswa (Bisa dikosongkan) --';
                     })()}
                   </span>
-                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>
+                    {selectedStudentIds.length > 0 ? `(${selectedStudentIds.length})` : ''} ▼
+                  </span>
                 </div>
 
                 {searchSelectOpen && (
@@ -524,7 +537,7 @@ export default function AdminWaliPage() {
                       boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
                       padding: '8px',
                       zIndex: 120,
-                      maxHeight: '200px',
+                      maxHeight: '230px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '8px',
@@ -545,58 +558,66 @@ export default function AdminWaliPage() {
                         autoFocus
                       />
                       <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <div
-                          onClick={() => {
-                            setStudentId('');
-                            setSearchSelectOpen(false);
-                            setSearchQuery('');
-                          }}
-                          style={{
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontFamily: 'Nunito, sans-serif',
-                            fontWeight: 700,
-                            color: '#E74C3C',
-                            background: studentId === '' ? '#FDEDEC' : 'transparent',
-                            transition: 'background 0.2s',
-                          }}
-                          className="student-option"
-                        >
-                          -- Kosongkan / Lepas Hubungan Siswa --
-                        </div>
                         {students
                           .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                          .map(s => (
-                            <div
-                              key={s.id}
-                              onClick={() => {
-                                setStudentId(s.id);
-                                setSearchSelectOpen(false);
-                                setSearchQuery('');
-                              }}
-                              style={{
-                                padding: '10px 12px',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontSize: '0.85rem',
-                                fontFamily: 'Nunito, sans-serif',
-                                fontWeight: 700,
-                                color: '#2C3E50',
-                                background: s.id === studentId ? 'var(--bg-cream)' : 'transparent',
-                                transition: 'background 0.2s',
-                              }}
-                              className="student-option"
-                            >
-                              <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji || '🦁'}</span>
-                              <span>{s.name} ({s.classId?.toUpperCase().replace('-', ' ')})</span>
-                            </div>
-                          ))}
+                          .map(s => {
+                            const isChecked = selectedStudentIds.includes(s.id);
+                            return (
+                              <div
+                                key={s.id}
+                                onClick={() => {
+                                  if (isChecked) {
+                                    setSelectedStudentIds(prev => prev.filter(id => id !== s.id));
+                                  } else {
+                                    setSelectedStudentIds(prev => [...prev, s.id]);
+                                  }
+                                }}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  fontSize: '0.85rem',
+                                  fontFamily: 'Nunito, sans-serif',
+                                  fontWeight: 700,
+                                  color: '#2C3E50',
+                                  background: isChecked ? 'var(--bg-cream)' : 'transparent',
+                                  transition: 'background 0.2s',
+                                }}
+                                className="student-option"
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '1.2rem' }}>{s.avatarEmoji || '🦁'}</span>
+                                  <span>{s.name} ({s.classId?.toUpperCase().replace('-', ' ')})</span>
+                                </div>
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => {}} // click on parent div handles state
+                                  style={{ cursor: 'pointer' }}
+                                />
+                              </div>
+                            );
+                          })}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => { setSearchSelectOpen(false); setSearchQuery(''); }}
+                        style={{
+                          padding: '6px',
+                          background: 'var(--primary)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontWeight: 'bold',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Selesai Terpilih
+                      </button>
                     </div>
                   </>
                 )}

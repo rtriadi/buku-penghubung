@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS classes (
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('teacher', 'parent', 'admin')),
+  role TEXT NOT NULL CHECK (role IN ('teacher', 'parent', 'admin', 'principal')),
   class_id TEXT,          -- Untuk Guru
   student_id UUID,        -- Untuk Wali Murid
   email TEXT,             -- Kolom Email untuk query asinkronus mudah
@@ -164,6 +164,10 @@ DROP POLICY IF EXISTS "Admins can manage all daily logs" ON daily_logs;
 DROP POLICY IF EXISTS "Parents can manage their child home logs" ON home_logs;
 DROP POLICY IF EXISTS "Teachers can read home logs for their class" ON home_logs;
 DROP POLICY IF EXISTS "Admins can manage all home logs" ON home_logs;
+DROP POLICY IF EXISTS "Principals see all students" ON students;
+DROP POLICY IF EXISTS "Principals see all daily logs" ON daily_logs;
+DROP POLICY IF EXISTS "Principals see all home logs" ON home_logs;
+DROP POLICY IF EXISTS "Principals can view all profiles" ON profiles;
 
 -- Buat kebijakan baru secara bersih
 CREATE POLICY "Allow select for authenticated users on classes" ON classes FOR SELECT TO authenticated USING (true);
@@ -210,6 +214,18 @@ CREATE POLICY "Teachers can read home logs for their class" ON home_logs FOR SEL
 
 CREATE POLICY "Admins can manage all home logs" ON home_logs FOR ALL TO authenticated
   USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
+
+CREATE POLICY "Principals see all students" ON students FOR SELECT TO authenticated
+  USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'principal');
+
+CREATE POLICY "Principals see all daily logs" ON daily_logs FOR SELECT TO authenticated
+  USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'principal');
+
+CREATE POLICY "Principals see all home logs" ON home_logs FOR SELECT TO authenticated
+  USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'principal');
+
+CREATE POLICY "Principals can view all profiles" ON profiles FOR SELECT TO authenticated
+  USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'principal');
 
 -- ============================================================
 -- 11. TRIGGERS & FUNCTIONS

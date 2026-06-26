@@ -1,6 +1,6 @@
 // lib/types.ts
 
-export type Role = 'teacher' | 'parent' | 'admin';
+export type Role = 'teacher' | 'parent' | 'admin' | 'principal';
 
 export type HealthCondition = 'sehat' | 'kurang_sehat' | 'sakit';
 

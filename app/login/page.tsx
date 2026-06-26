@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
 export default function LoginPage() {
-  const [role, setRole] = useState<'teacher' | 'parent' | 'admin' | null>(null);
+  const [role, setRole] = useState<'teacher' | 'parent' | 'admin' | 'principal' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +20,8 @@ export default function LoginPage() {
         router.replace('/admin');
       } else if (user.role === 'teacher') {
         router.replace('/teacher/dashboard');
+      } else if (user.role === 'principal') {
+        router.replace('/principal/dashboard');
       } else {
         router.replace('/parent/dashboard');
       }
@@ -42,7 +44,14 @@ export default function LoginPage() {
       if (stored) {
         const u = JSON.parse(stored);
         if (u.role !== role) {
-          setError(`Email ini terdaftar sebagai ${u.role === 'teacher' ? 'Guru' : u.role === 'admin' ? 'Admin' : 'Orang Tua'}. Silakan pilih peran yang sesuai.`);
+          const roleLabels: Record<string, string> = {
+            admin: 'Admin',
+            teacher: 'Guru',
+            parent: 'Orang Tua',
+            principal: 'Kepala Sekolah',
+          };
+          const label = roleLabels[u.role] || u.role;
+          setError(`Email ini terdaftar sebagai ${label}. Silakan pilih peran yang sesuai.`);
           localStorage.removeItem('buku_penghubung_user');
           setIsLoading(false);
         }
@@ -150,11 +159,12 @@ export default function LoginPage() {
           }}>
             Saya adalah...
           </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             {[
               { value: 'admin' as const, label: 'Admin', emoji: '⚙️', desc: 'Kelola data' },
               { value: 'teacher' as const, label: 'Guru', emoji: '👩‍🏫', desc: 'Laporan harian' },
               { value: 'parent' as const, label: 'Orang Tua', emoji: '👨‍👩', desc: 'Pantau anak' },
+              { value: 'principal' as const, label: 'Kepala Sekolah', emoji: '🎓', desc: 'Laporan & Rekap' },
             ].map(opt => (
               <button
                 key={opt.value}
@@ -196,7 +206,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={role === 'admin' ? "admin@dkhairat.sch.id" : role === 'teacher' ? "guru@dkhairat.sch.id" : "orangtua@gmail.com"}
+              placeholder={role === 'admin' ? "admin@dkhairat.sch.id" : role === 'teacher' ? "guru@dkhairat.sch.id" : role === 'principal' ? "kepsek@dkhairat.sch.id" : "orangtua@gmail.com"}
               className="input"
               style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               required
