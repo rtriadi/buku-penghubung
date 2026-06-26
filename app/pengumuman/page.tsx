@@ -93,10 +93,55 @@ export default function PengumumanPage() {
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #1E8449 0%, #27AE60 100%)',
-        padding: '20px 20px 28px',
+        padding: '24px 20px 28px',
         color: 'white',
         textAlign: 'center',
+        position: 'relative',
       }}>
+        {/* Back button */}
+        <button
+          onClick={() => {
+            if (user) {
+              if (user.role === 'parent') router.push('/parent/dashboard');
+              else if (user.role === 'teacher') router.push('/teacher/dashboard');
+              else if (user.role === 'principal') router.push('/principal/dashboard');
+              else router.push('/');
+            } else {
+              router.push('/');
+            }
+          }}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '16px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            color: 'white',
+            fontWeight: 800,
+            fontSize: '0.78rem',
+            cursor: 'pointer',
+            fontFamily: 'Nunito, sans-serif',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.currentTarget.style.transform = 'none';
+          }}
+        >
+          <span>⬅️</span>
+          <span>Kembali</span>
+        </button>
+
         <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>📢</div>
         <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, fontFamily: 'Nunito, sans-serif' }}>
           Pengumuman Sekolah
