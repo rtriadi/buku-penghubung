@@ -33,6 +33,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, isMobile]);
 
+  // Redirect unauthorized or logged out users to login page
+  useEffect(() => {
+    if (mounted && !isLoading && (!user || user.role !== 'admin')) {
+      router.replace('/login');
+    }
+  }, [user, isLoading, router, mounted]);
+
   if (!mounted || isLoading || !user || user.role !== 'admin') {
     return (
       <div style={{
