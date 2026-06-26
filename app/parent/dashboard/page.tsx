@@ -272,6 +272,57 @@ export default function ParentDashboard() {
             touchAction: 'pan-y',
           }}
         >
+          {students.length > 1 && (
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '16px',
+              padding: '0 8px',
+              borderBottom: '1px solid rgba(255,255,255,0.15)',
+              paddingBottom: '12px',
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+            }}>
+              <style>{`
+                .child-tabs-container::-webkit-scrollbar { display: none; }
+              `}</style>
+              <div className="child-tabs-container" style={{ display: 'flex', gap: '8px' }}>
+                {students.map(s => {
+                  const isActive = s.id === activeChildId;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setActiveChildId(s.id);
+                        localStorage.setItem('buku_penghubung_active_child_id', s.id);
+                        window.dispatchEvent(new Event('activeChildChanged'));
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        background: isActive ? 'white' : 'rgba(255,255,255,0.15)',
+                        border: 'none',
+                        color: isActive ? '#1A5276' : 'white',
+                        fontFamily: 'Nunito, sans-serif',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                      }}
+                    >
+                      <span>{s.avatarEmoji}</span>
+                      <span>{s.nickname}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', padding: '0 8px' }}>
             <div style={{
               width: '72px', height: '72px', borderRadius: '20px',
@@ -283,80 +334,9 @@ export default function ParentDashboard() {
               {student.avatarEmoji}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
-                  {student.nickname}
-                </h1>
-                {students.length > 1 && (
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    background: 'rgba(255,255,255,0.2)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '12px',
-                    padding: '2px 4px',
-                    gap: '4px',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                  }}>
-                    <button
-                      onClick={switchToPrevChild}
-                      style={{
-                        background: 'rgba(255,255,255,0.2)',
-                        border: 'none',
-                        color: 'white',
-                        fontSize: '0.65rem',
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.color = '#2980B9';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                        e.currentTarget.style.color = 'white';
-                      }}
-                    >
-                      ◀
-                    </button>
-                    <span style={{ fontSize: '0.65rem', color: 'white', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 2px', userSelect: 'none' }}>Ganti</span>
-                    <button
-                      onClick={switchToNextChild}
-                      style={{
-                        background: 'rgba(255,255,255,0.2)',
-                        border: 'none',
-                        color: 'white',
-                        fontSize: '0.65rem',
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.color = '#2980B9';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                        e.currentTarget.style.color = 'white';
-                      }}
-                    >
-                      ▶
-                    </button>
-                  </div>
-                )}
-              </div>
+              <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                {student.nickname}
+              </h1>
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</p>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                 📅 {mounted ? formatDateIndonesia(selectedDate) : '—'}
@@ -409,37 +389,6 @@ export default function ParentDashboard() {
               margin: '0 8px',
             }}>
               ⏳ Laporan sekolah belum diisi guru pada tanggal ini
-            </div>
-          )}
-
-          {students.length > 1 && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '6px',
-              marginTop: '14px',
-            }}>
-              {students.map((s, idx) => {
-                const isActive = s.id === activeChildId;
-                return (
-                  <div
-                    key={s.id}
-                    onClick={() => {
-                      setActiveChildId(s.id);
-                      localStorage.setItem('buku_penghubung_active_child_id', s.id);
-                      window.dispatchEvent(new Event('activeChildChanged'));
-                    }}
-                    style={{
-                      width: isActive ? '18px' : '6px',
-                      height: '6px',
-                      borderRadius: '3px',
-                      background: isActive ? 'white' : 'rgba(255,255,255,0.4)',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer',
-                    }}
-                  />
-                );
-              })}
             </div>
           )}
         </div>

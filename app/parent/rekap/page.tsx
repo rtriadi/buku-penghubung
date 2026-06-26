@@ -443,7 +443,57 @@ export default function ParentRekapPage() {
       </div>
 
       {/* Student Info */}
-      <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px' }}>
+      <div className="card animate-fade-in-up delay-100" style={{ padding: '18px 16px', marginBottom: '20px' }}>
+        {students.length > 1 && (
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '16px',
+            borderBottom: '1px solid #F0F2F5',
+            paddingBottom: '12px',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+          }}>
+            <style>{`
+              .child-tabs-container::-webkit-scrollbar { display: none; }
+            `}</style>
+            <div className="child-tabs-container" style={{ display: 'flex', gap: '8px' }}>
+              {students.map(s => {
+                const isActive = s.id === activeChildId;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => {
+                      setActiveChildId(s.id);
+                      localStorage.setItem('buku_penghubung_active_child_id', s.id);
+                      window.dispatchEvent(new Event('activeChildChanged'));
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      background: isActive ? '#2980B9' : 'rgba(41, 128, 185, 0.08)',
+                      border: 'none',
+                      color: isActive ? 'white' : '#2980B9',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isActive ? '0 2px 8px rgba(41, 128, 185, 0.2)' : 'none',
+                    }}
+                  >
+                    <span>{s.avatarEmoji}</span>
+                    <span>{s.nickname}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             width: '56px', height: '56px', borderRadius: '16px',
@@ -454,77 +504,7 @@ export default function ParentRekapPage() {
             {student.avatarEmoji}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem', color: '#2C3E50' }}>{student.name}</div>
-              {students.length > 1 && (
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  background: 'rgba(41, 128, 185, 0.1)',
-                  border: '1px solid rgba(41, 128, 185, 0.15)',
-                  borderRadius: '12px',
-                  padding: '2px 4px',
-                  gap: '4px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                }}>
-                  <button
-                    onClick={switchToPrevChild}
-                    style={{
-                      background: 'rgba(41, 128, 185, 0.15)',
-                      border: 'none',
-                      color: '#2980B9',
-                      fontSize: '0.65rem',
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#2980B9';
-                      e.currentTarget.style.color = 'white';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(41, 128, 185, 0.15)';
-                      e.currentTarget.style.color = '#2980B9';
-                    }}
-                  >
-                    ◀
-                  </button>
-                  <span style={{ fontSize: '0.65rem', color: '#2980B9', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 2px', userSelect: 'none' }}>Ganti</span>
-                  <button
-                    onClick={switchToNextChild}
-                    style={{
-                      background: 'rgba(41, 128, 185, 0.15)',
-                      border: 'none',
-                      color: '#2980B9',
-                      fontSize: '0.65rem',
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#2980B9';
-                      e.currentTarget.style.color = 'white';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(41, 128, 185, 0.15)';
-                      e.currentTarget.style.color = '#2980B9';
-                    }}
-                  >
-                    ▶
-                  </button>
-                </div>
-              )}
-            </div>
+            <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem', color: '#2C3E50' }}>{student.name}</div>
             <div style={{ fontSize: '0.8rem', color: '#7f8c8d', marginTop: '2px' }}>Kelas A • Laporan Bulanan {MONTHS[selectedMonth]} {selectedYear}</div>
           </div>
         </div>
