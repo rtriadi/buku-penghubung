@@ -3,7 +3,7 @@
 // Replaces the local memory/localStorage store with actual server integration.
 
 import { supabase } from './supabase';
-import type { User, Student, DailyLog, HomeLog, ClassInfo, SchoolActivity, HomeActivity, AccountCredentials, Role } from './types';
+import type { User, Student, DailyLog, HomeLog, ClassInfo, SchoolActivity, HomeActivity, AccountCredentials, Role, Announcement } from './types';
 
 export const DEFAULT_PASSWORD = 'dkhairat2024';
 
@@ -883,3 +883,172 @@ export const MOCK_USERS: User[] = [];
 export const MOCK_STUDENTS: Student[] = [];
 export const mockDailyLogs: DailyLog[] = [];
 export const mockHomeLogs: HomeLog[] = [];
+
+// ============================================================
+// ANNOUNCEMENT MAPPER
+// ============================================================
+
+export function mapAnnouncement(a: any): Announcement {
+  return {
+    id: a.id,
+    title: a.title,
+    content: a.content || '',
+    startDate: a.start_date,
+    endDate: a.end_date,
+    isActive: a.is_active !== false,
+    createdBy: a.created_by || undefined,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at,
+  };
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+
+/** Ambil semua pengumuman yang aktif dan dalam rentang tanggal hari ini (untuk user) */
+export async function getActiveAnnouncements(): Promise<Announcement[]> {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('is_active', true)
+      .lte('start_date', today)
+      .gte('end_date', today)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(mapAnnouncement);
+  } catch (err) {
+    console.error('getActiveAnnouncements error:', err);
+    return [];
+  }
+}
+
+/** Ambil semua pengumuman untuk admin (termasuk nonaktif dan expired) */
+export async function getAllAnnouncements(): Promise<Announcement[]> {
+  try {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(mapAnnouncement);
+  } catch (err) {
+    console.error('getAllAnnouncements error:', err);
+    return [];
+  }
+}
+
+/** Buat pengumuman baru (melalui API route admin) */
+export async function createAnnouncement(
+  data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Announcement> {
+  const res = await fetch('/api/admin/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Gagal membuat pengumuman');
+  }
+  const result = await res.json();
+  return mapAnnouncement(result.data);
+}
+
+/** Update pengumuman yang ada */
+export async function updateAnnouncement(
+  id: string,
+  data: Partial<Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>>
+): Promise<Announcement> {
+  const res = await fetch(`/api/admin/announcements/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Gagal mengupdate pengumuman');
+  }
+  const result = await res.json();
+  return mapAnnouncement(result.data);
+}
+
+/** Hapus pengumuman */
+export async function deleteAnnouncement(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/admin/announcements/${id}`, {
+      method: 'DELETE',
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('deleteAnnouncement error:', err);
+    return false;
+  }
+}
+
+// ============================================================
+// ANNOUNCEMENT READS
+// ============================================================
+
+/** Ambil semua announcement_id yang sudah dibaca user */
+export async function getMyAnnouncementReads(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('announcement_reads')
+      .select('announcement_id')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return (data || []).map((r: any) => r.announcement_id);
+  } catch (err) {
+    console.error('getMyAnnouncementReads error:', err);
+    return [];
+  }
+}
+
+/** Tandai satu pengumuman sudah dibaca */
+export async function markAnnouncementRead(
+  announcementId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('announcement_reads')
+      .upsert(
+        { announcement_id: announcementId, user_id: userId },
+        { onConflict: 'announcement_id,user_id' }
+      );
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('markAnnouncementRead error:', err);
+    return false;
+  }
+}
+
+/** Tandai semua pengumuman aktif sebagai sudah dibaca */
+export async function markAllAnnouncementsRead(userId: string): Promise<boolean> {
+  try {
+    const announcements = await getActiveAnnouncements();
+    if (announcements.length === 0) return true;
+
+    const rows = announcements.map(a => ({
+      announcement_id: a.id,
+      user_id: userId,
+    }));
+
+    const { error } = await supabase
+      .from('announcement_reads')
+      .upsert(rows, { onConflict: 'announcement_id,user_id' });
+
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('markAllAnnouncementsRead error:', err);
+    return false;
+  }
+}

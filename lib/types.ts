@@ -91,3 +91,23 @@ export interface AccountCredentials {
   name: string;
   role: Role;
 }
+
+// Announcement types
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string; // HTML string from Quill.js
+  startDate: string; // ISO date string YYYY-MM-DD
+  endDate: string;   // ISO date string YYYY-MM-DD
+  isActive: boolean;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AnnouncementRead {
+  id: string;
+  announcementId: string;
+  userId: string;
+  readAt: string;
+}
