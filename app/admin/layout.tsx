@@ -83,6 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/wali', label: 'Manajemen Wali Ortu', emoji: '👨‍👩' },
     { href: '/admin/aktivitas', label: 'Aktivitas Harian', emoji: '⚙️' },
     { href: '/admin/kelas', label: 'Manajemen Kelas', emoji: '🏫' },
+    { href: '/admin/pengumuman', label: 'Pengumuman', emoji: '📢' },
   ];
 
   return (
@@ -169,7 +170,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
           {menuItems.map(item => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === '/admin'
+              ? pathname === '/admin'
+              : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

@@ -6,10 +6,15 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { SCHOOL_NAME, CLASS_NAME } from '@/lib/constants';
 import { getGreeting } from '@/lib/utils';
+import AnnouncementBell from '@/app/components/AnnouncementBell';
+import AnnouncementPopup from '@/app/components/AnnouncementPopup';
+import { getActiveAnnouncements, getMyAnnouncementReads } from '@/lib/db';
+import type { Announcement } from '@/lib/types';
 
 const NAV_ITEMS = [
-  { href: '/teacher/dashboard', emoji: '🏠', label: 'Beranda' },
-  { href: '/teacher/rekap', emoji: '📊', label: 'Rekap' },
+  { href: '/teacher/dashboard', emoji: '🏠', label: 'Beranda', isBell: false },
+  { href: '/teacher/rekap', emoji: '📊', label: 'Rekap', isBell: false },
+  { href: '/pengumuman', emoji: '🔔', label: 'Pengumuman', isBell: true },
 ];
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
@@ -17,12 +22,40 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const pathname = usePathname();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [activeAnnouncements, setActiveAnnouncements] = useState<Announcement[]>([]);
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'teacher')) {
       router.replace('/login');
     }
   }, [user, isLoading, router]);
+
+  useEffect(() => {
+    async function loadAnnouncements() {
+      if (!user) return;
+      try {
+        const [announcements, reads] = await Promise.all([
+          getActiveAnnouncements(),
+          getMyAnnouncementReads(user.id),
+        ]);
+        setActiveAnnouncements(announcements);
+        setReadIds(reads);
+        const unread = announcements.filter(a => !reads.includes(a.id));
+        if (unread.length > 0) {
+          const sessionKey = `announcement_shown_${user.id}`;
+          if (!sessionStorage.getItem(sessionKey)) {
+            sessionStorage.setItem(sessionKey, '1');
+            setShowAnnouncementPopup(true);
+          }
+        }
+      } catch (err) {
+        console.error('loadAnnouncements error:', err);
+      }
+    }
+    if (user) loadAnnouncements();
+  }, [user]);
 
   if (isLoading || !user) {
     return (
@@ -95,7 +128,16 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             href={item.href}
             className={`bottom-nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
           >
-            <span className="nav-icon">{item.emoji}</span>
+            <span className="nav-icon">
+              {item.isBell ? (
+                <AnnouncementBell
+                  unreadCount={activeAnnouncements.filter(a => !readIds.includes(a.id)).length}
+                  isActive={pathname.startsWith(item.href)}
+                />
+              ) : (
+                item.emoji
+              )}
+            </span>
             <span>{item.label}</span>
           </Link>
         ))}
@@ -171,6 +213,16 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Announcement Popup */}
+      {showAnnouncementPopup && user && (
+        <AnnouncementPopup
+          announcements={activeAnnouncements.filter(a => !readIds.includes(a.id))}
+          userId={user.id}
+          onClose={() => setShowAnnouncementPopup(false)}
+          onRead={(id) => setReadIds(prev => [...prev, id])}
+        />
       )}
     </div>
   );

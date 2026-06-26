@@ -7,11 +7,15 @@ import Link from 'next/link';
 import { SCHOOL_NAME } from '@/lib/constants';
 import { getGreeting } from '@/lib/utils';
 import { getStudentById, getStudentsByParent } from '@/lib/db';
-import type { Student } from '@/lib/types';
+import { getActiveAnnouncements, getMyAnnouncementReads } from '@/lib/db';
+import type { Student, Announcement } from '@/lib/types';
+import AnnouncementBell from '@/app/components/AnnouncementBell';
+import AnnouncementPopup from '@/app/components/AnnouncementPopup';
 
 const NAV_ITEMS = [
-  { href: '/parent/dashboard', emoji: '🏠', label: 'Beranda' },
-  { href: '/parent/rekap', emoji: '📊', label: 'Rekap' },
+  { href: '/parent/dashboard', emoji: '🏠', label: 'Beranda', isBell: false },
+  { href: '/parent/rekap', emoji: '📊', label: 'Rekap', isBell: false },
+  { href: '/pengumuman', emoji: '🔔', label: 'Pengumuman', isBell: true },
 ];
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +26,9 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
   const [activeChild, setActiveChild] = useState<Student | null>(null);
   const [studentLoading, setStudentLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [activeAnnouncements, setActiveAnnouncements] = useState<Announcement[]>([]);
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'parent')) {
@@ -67,6 +74,31 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
     if (user) {
       loadStudents();
     }
+  }, [user]);
+
+  useEffect(() => {
+    async function loadAnnouncements() {
+      if (!user) return;
+      try {
+        const [announcements, reads] = await Promise.all([
+          getActiveAnnouncements(),
+          getMyAnnouncementReads(user.id),
+        ]);
+        setActiveAnnouncements(announcements);
+        setReadIds(reads);
+        const unread = announcements.filter(a => !reads.includes(a.id));
+        if (unread.length > 0) {
+          const sessionKey = `announcement_shown_${user.id}`;
+          if (!sessionStorage.getItem(sessionKey)) {
+            sessionStorage.setItem(sessionKey, '1');
+            setShowAnnouncementPopup(true);
+          }
+        }
+      } catch (err) {
+        console.error('loadAnnouncements error:', err);
+      }
+    }
+    if (user) loadAnnouncements();
   }, [user]);
 
   if (isLoading || studentLoading || !user) {
@@ -174,7 +206,16 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             className={`bottom-nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
             style={{ '--tw-text-opacity': 1 } as React.CSSProperties}
           >
-            <span className="nav-icon">{item.emoji}</span>
+            <span className="nav-icon">
+              {item.isBell ? (
+                <AnnouncementBell
+                  unreadCount={activeAnnouncements.filter(a => !readIds.includes(a.id)).length}
+                  isActive={pathname.startsWith(item.href)}
+                />
+              ) : (
+                item.emoji
+              )}
+            </span>
             <span>{item.label}</span>
           </Link>
         ))}
@@ -276,6 +317,16 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
         </div>
+      )}
+
+      {/* Announcement Popup */}
+      {showAnnouncementPopup && user && (
+        <AnnouncementPopup
+          announcements={activeAnnouncements.filter(a => !readIds.includes(a.id))}
+          userId={user.id}
+          onClose={() => setShowAnnouncementPopup(false)}
+          onRead={(id) => setReadIds(prev => [...prev, id])}
+        />
       )}
     </div>
   );
