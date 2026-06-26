@@ -30,7 +30,6 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!role) { setError('Pilih peran Anda terlebih dahulu'); return; }
     setIsLoading(true);
     setError('');
     
@@ -38,24 +37,6 @@ export default function LoginPage() {
     if (!result.success) {
       setError(result.error || 'Login gagal');
       setIsLoading(false);
-    } else {
-      // Role checking: ensure logging in matches selected role
-      const stored = localStorage.getItem('buku_penghubung_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u.role !== role) {
-          const roleLabels: Record<string, string> = {
-            admin: 'Admin',
-            teacher: 'Guru',
-            parent: 'Orang Tua',
-            principal: 'Kepala Sekolah',
-          };
-          const label = roleLabels[u.role] || u.role;
-          setError(`Email ini terdaftar sebagai ${label}. Silakan pilih peran yang sesuai.`);
-          localStorage.removeItem('buku_penghubung_user');
-          setIsLoading(false);
-        }
-      }
     }
   }
 
@@ -206,7 +187,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={role === 'admin' ? "admin@dkhairat.sch.id" : role === 'teacher' ? "guru@dkhairat.sch.id" : role === 'principal' ? "kepsek@dkhairat.sch.id" : "orangtua@gmail.com"}
+              placeholder={role === 'admin' ? "admin@dkhairat.sch.id" : role === 'teacher' ? "guru@dkhairat.sch.id" : role === 'principal' ? "kepsek@dkhairat.sch.id" : role === 'parent' ? "orangtua@gmail.com" : "Masukkan email Anda"}
               className="input"
               style={{ padding: '10px 12px', fontSize: '0.9rem' }}
               required
@@ -247,7 +228,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading || !role}
+            disabled={isLoading}
             className="btn btn-primary btn-full"
             style={{ marginTop: '4px', padding: '10px', fontSize: '0.95rem', borderRadius: '12px' }}
           >

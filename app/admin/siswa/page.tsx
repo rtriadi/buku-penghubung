@@ -868,22 +868,22 @@ export default function AdminSiswaPage() {
         <div style={{
           position: 'fixed',
           bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(44, 62, 80, 0.95)',
-          backdropFilter: 'blur(10px)',
-          padding: '12px 24px',
+          left: '16px',
+          right: '16px',
+          margin: '0 auto',
+          background: 'rgba(30, 41, 59, 0.96)',
+          backdropFilter: 'blur(12px)',
+          padding: '14px 20px',
           borderRadius: '20px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
           display: 'flex',
           alignItems: 'center',
-          gap: '16px',
+          gap: '12px',
           zIndex: 90,
           color: 'white',
-          width: '90%',
-          maxWidth: '500px',
+          maxWidth: '480px',
           justifyContent: 'space-between',
-          border: '1.5px solid rgba(255,255,255,0.1)'
+          border: '1.5px solid rgba(255,255,255,0.08)'
         }} className="animate-fade-in-up">
           <div style={{ fontSize: '0.85rem', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
             Dipilih: <span style={{ color: '#2ECC71', fontSize: '1rem', fontWeight: 900 }}>{selectedIds.length}</span> siswa

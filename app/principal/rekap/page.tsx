@@ -815,7 +815,7 @@ export default function PrincipalRekapPage() {
                   cursor: 'pointer',
                 }}
               >
-                {isDownloading ? '⏳ Mempersiapkan PDF Bulanan (Landscape)...' : '📥 Unduh Laporan PDF (Landscape)'}
+                {isDownloading ? '⏳ Mempersiapkan PDF Bulanan...' : '📥 Unduh Laporan PDF'}
               </button>
 
               {/* Hidden PDF Template (Landscape A4: 1123px width) */}

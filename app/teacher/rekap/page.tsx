@@ -520,7 +520,7 @@ export default function TeacherRekapPage() {
             className="btn btn-secondary btn-lg btn-full"
             style={{ marginBottom: '30px' }}
           >
-            {isDownloading ? '⏳ Mempersiapkan PDF Bulanan (Landscape)...' : '📥 Unduh Laporan PDF (Landscape)'}
+            {isDownloading ? '⏳ Mempersiapkan PDF Bulanan...' : '📥 Unduh Laporan PDF'}
           </button>
 
           {/* Hidden PDF Template (Landscape A4: 1123px width) */}
