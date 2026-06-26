@@ -30,6 +30,11 @@ export default function PrincipalDashboard() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<'school' | 'home'>('school');
 
+  // Custom Dropdown States
+  const [classDropdownOpen, setClassDropdownOpen] = useState(false);
+  const [searchClassQuery, setSearchClassQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'alumni'>('active');
+
   useEffect(() => {
     setMounted(true);
     async function loadClasses() {
@@ -92,10 +97,16 @@ export default function PrincipalDashboard() {
 
   if (!mounted) return null;
 
-  const totalStudents = students.length;
-  const totalHadir = students.filter(s => dailyLogs[s.id]?.schoolActivities?.hadir).length;
-  const totalSakit = students.filter(s => dailyLogs[s.id]?.healthStatus?.kondisi === 'sakit').length;
-  const totalIzin = students.filter(s => dailyLogs[s.id]?.schoolActivities && !dailyLogs[s.id]?.schoolActivities?.hadir && dailyLogs[s.id]?.healthStatus?.kondisi !== 'sakit').length;
+  const filteredStudents = students.filter(s => {
+    if (statusFilter === 'active') return s.status !== 'alumni';
+    if (statusFilter === 'alumni') return s.status === 'alumni';
+    return true;
+  });
+
+  const totalStudents = filteredStudents.length;
+  const totalHadir = filteredStudents.filter(s => dailyLogs[s.id]?.schoolActivities?.hadir).length;
+  const totalSakit = filteredStudents.filter(s => dailyLogs[s.id]?.healthStatus?.kondisi === 'sakit').length;
+  const totalIzin = filteredStudents.filter(s => dailyLogs[s.id]?.schoolActivities && !dailyLogs[s.id]?.schoolActivities?.hadir && dailyLogs[s.id]?.healthStatus?.kondisi !== 'sakit').length;
 
   const selectedClass = classes.find(c => c.id === selectedClassId);
 
@@ -110,23 +121,111 @@ export default function PrincipalDashboard() {
       </div>
 
       {/* Class and Date Selectors */}
-      <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-        <div>
+      <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', overflow: 'visible' }}>
+        <div style={{ position: 'relative' }}>
           <label className="input-label" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>📚 Pilih Kelas</label>
-          <select
-            value={selectedClassId}
-            onChange={e => setSelectedClassId(e.target.value)}
+          <div
+            onClick={() => setClassDropdownOpen(!classDropdownOpen)}
             className="input"
-            style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'white',
+              padding: '10px 12px',
+              borderRadius: '12px',
+              border: classDropdownOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
+              fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              color: '#2C3E50',
+            }}
           >
-            {classes.length === 0 ? (
-              <option value="">Tidak ada kelas</option>
-            ) : (
-              classes.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))
-            )}
-          </select>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+              {selectedClass ? `🏫 ${selectedClass.name}` : 'Pilih Kelas'}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+          </div>
+
+          {classDropdownOpen && (
+            <>
+              <div 
+                style={{ position: 'fixed', inset: 0, zIndex: 90 }} 
+                onClick={() => { setClassDropdownOpen(false); setSearchClassQuery(''); }}
+              />
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                minWidth: '220px',
+                background: 'white',
+                borderRadius: '16px',
+                border: '1px solid #E8ECF0',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                marginTop: '6px',
+                padding: '8px',
+                zIndex: 100,
+                maxHeight: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+              }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Cari kelas..."
+                  value={searchClassQuery}
+                  onChange={e => setSearchClassQuery(e.target.value)}
+                  className="input"
+                  style={{
+                    padding: '8px 10px',
+                    fontSize: '0.85rem',
+                    borderRadius: '8px',
+                    border: '1.5px solid #E8ECF0',
+                    width: '100%',
+                  }}
+                  autoFocus
+                />
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {classes.length === 0 ? (
+                    <div style={{ padding: '8px', textAlign: 'center', color: '#AEB6BF', fontSize: '0.85rem' }}>
+                      Tidak ada kelas
+                    </div>
+                  ) : (
+                    classes
+                      .filter(c => c.name.toLowerCase().includes(searchClassQuery.toLowerCase()))
+                      .map(c => (
+                        <div
+                          key={c.id}
+                          onClick={() => {
+                            setSelectedClassId(c.id);
+                            setClassDropdownOpen(false);
+                            setSearchClassQuery('');
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#2C3E50',
+                            background: c.id === selectedClassId ? 'var(--bg-cream)' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                        >
+                          <span>🏫 {c.name}</span>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <div>
           <label className="input-label" style={{ fontWeight: 800, color: 'var(--text-dark)' }}>📅 Tanggal Laporan</label>
@@ -135,7 +234,7 @@ export default function PrincipalDashboard() {
             value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
             className="input"
-            style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+            style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700, height: '42px', padding: '10px 12px' }}
             max={getTodayISO()}
           />
         </div>
@@ -176,19 +275,58 @@ export default function PrincipalDashboard() {
           </div>
 
           {/* Student Grid */}
-          <div className="section-header animate-fade-in-up delay-200">
-            <span style={{ fontSize: '1.3rem' }}>👧👦</span>
-            <h2 className="section-title">Daftar Siswa ({selectedClass?.name})</h2>
+          <div className="section-header animate-fade-in-up delay-200" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.3rem' }}>👧👦</span>
+              <h2 className="section-title">Daftar Siswa ({selectedClass?.name})</h2>
+            </div>
+            
+            {/* Status Filter Tabs */}
+            <div style={{
+              display: 'flex',
+              background: '#F0F3F4',
+              borderRadius: '12px',
+              padding: '3px',
+              gap: '2px',
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              {[
+                { value: 'all', label: 'Semua' },
+                { value: 'active', label: 'Aktif' },
+                { value: 'alumni', label: 'Alumni' }
+              ].map(tab => (
+                <button
+                  key={tab.value}
+                  onClick={() => setStatusFilter(tab.value as any)}
+                  style={{
+                    border: 'none',
+                    background: statusFilter === tab.value ? 'white' : 'transparent',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    color: statusFilter === tab.value ? '#2C3E50' : '#7F8C8D',
+                    boxShadow: statusFilter === tab.value ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {students.length === 0 ? (
+          {filteredStudents.length === 0 ? (
             <div className="card" style={{ padding: '30px 20px', textAlign: 'center', color: '#AEB6BF' }}>
               <span style={{ fontSize: '2.5rem' }}>👥</span>
-              <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, marginTop: '8px', fontSize: '0.9rem' }}>Belum ada siswa di kelas ini</p>
+              <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, marginTop: '8px', fontSize: '0.9rem' }}>
+                Tidak ada siswa {statusFilter === 'active' ? 'aktif' : statusFilter === 'alumni' ? 'alumni' : ''} di kelas ini
+              </p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {students.map((student, idx) => {
+              {filteredStudents.map((student, idx) => {
                 const dLog = dailyLogs[student.id];
                 const hLog = homeLogs[student.id];
                 const schoolDone = dLog ? Object.values(dLog.schoolActivities).filter(Boolean).length : 0;

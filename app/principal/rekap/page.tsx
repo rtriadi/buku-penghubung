@@ -76,14 +76,38 @@ export default function PrincipalRekapPage() {
   const [searchSelectOpen, setSearchSelectOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Custom Dropdown & Filter States
+  const [classDropdownOpen, setClassDropdownOpen] = useState(false);
+  const [searchClassQuery, setSearchClassQuery] = useState('');
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'alumni'>('active');
+
   const dates = getDatesInMonth(selectedYear, selectedMonth);
   
   const selectedClass = classes.find(c => c.id === selectedClassId);
   const student = students.find(s => s.id === selectedStudentId);
 
-  const filteredStudents = students.filter(s =>
+  const statusFilteredStudents = students.filter(s => {
+    if (statusFilter === 'active') return s.status !== 'alumni';
+    if (statusFilter === 'alumni') return s.status === 'alumni';
+    return true;
+  });
+
+  const filteredStudents = statusFilteredStudents.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    if (statusFilteredStudents.length > 0) {
+      const exists = statusFilteredStudents.some(s => s.id === selectedStudentId);
+      if (!exists) {
+        setSelectedStudentId(statusFilteredStudents[0].id);
+      }
+    } else {
+      setSelectedStudentId('');
+    }
+  }, [statusFilter, students]);
 
   useEffect(() => {
     setMounted(true);
@@ -223,20 +247,112 @@ export default function PrincipalRekapPage() {
       ) : (
         <>
           {/* Filters card */}
-          <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="card animate-fade-in-up delay-100" style={{ padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'visible' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">🏫 Pilih Kelas</label>
-                <select
-                  value={selectedClassId}
-                  onChange={e => setSelectedClassId(e.target.value)}
+                <div
+                  onClick={() => setClassDropdownOpen(!classDropdownOpen)}
                   className="input"
-                  style={{ cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: classDropdownOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    color: '#2C3E50',
+                  }}
                 >
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                    {selectedClass ? `🏫 ${selectedClass.name}` : 'Pilih Kelas'}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+
+                {classDropdownOpen && (
+                  <>
+                    <div 
+                      style={{ position: 'fixed', inset: 0, zIndex: 90 }} 
+                      onClick={() => { setClassDropdownOpen(false); setSearchClassQuery(''); }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      minWidth: '200px',
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1px solid #E8ECF0',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                      marginTop: '6px',
+                      padding: '8px',
+                      zIndex: 100,
+                      maxHeight: '200px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      <input
+                        type="text"
+                        placeholder="🔍 Cari kelas..."
+                        value={searchClassQuery}
+                        onChange={e => setSearchClassQuery(e.target.value)}
+                        className="input"
+                        style={{
+                          padding: '8px 10px',
+                          fontSize: '0.85rem',
+                          borderRadius: '8px',
+                          border: '1.5px solid #E8ECF0',
+                          width: '100%',
+                        }}
+                        autoFocus
+                      />
+                      <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {classes.length === 0 ? (
+                          <div style={{ padding: '8px', textAlign: 'center', color: '#AEB6BF', fontSize: '0.85rem' }}>
+                            Tidak ada kelas
+                          </div>
+                        ) : (
+                          classes
+                            .filter(c => c.name.toLowerCase().includes(searchClassQuery.toLowerCase()))
+                            .map(c => (
+                              <div
+                                key={c.id}
+                                onClick={() => {
+                                  setSelectedClassId(c.id);
+                                  setClassDropdownOpen(false);
+                                  setSearchClassQuery('');
+                                }}
+                                style={{
+                                  padding: '10px 12px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  fontSize: '0.85rem',
+                                  fontFamily: 'Nunito, sans-serif',
+                                  fontWeight: 700,
+                                  color: '#2C3E50',
+                                  background: c.id === selectedClassId ? 'var(--bg-cream)' : 'transparent',
+                                  transition: 'background 0.2s',
+                                }}
+                              >
+                                <span>🏫 {c.name}</span>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               <div style={{ position: 'relative' }}>
                 <label className="input-label">👧 Pilih Siswa</label>
@@ -251,7 +367,7 @@ export default function PrincipalRekapPage() {
                     background: 'white',
                     padding: '10px 12px',
                     borderRadius: '12px',
-                    border: '1.5px solid #E8ECF0',
+                    border: searchSelectOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
                     fontFamily: 'Nunito, sans-serif',
                     fontWeight: 700,
                     fontSize: '0.9rem',
@@ -283,7 +399,7 @@ export default function PrincipalRekapPage() {
                       marginTop: '6px',
                       padding: '8px',
                       zIndex: 100,
-                      maxHeight: '240px',
+                      maxHeight: '280px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '8px',
@@ -303,6 +419,47 @@ export default function PrincipalRekapPage() {
                         }}
                         autoFocus
                       />
+                      
+                      {/* Dropdown Status Filter Tabs */}
+                      <div style={{
+                        display: 'flex',
+                        background: '#F0F3F4',
+                        borderRadius: '8px',
+                        padding: '2px',
+                        gap: '2px',
+                        fontSize: '0.75rem'
+                      }}>
+                        {[
+                          { value: 'all', label: 'Semua' },
+                          { value: 'active', label: 'Aktif' },
+                          { value: 'alumni', label: 'Alumni' }
+                        ].map(tab => (
+                          <button
+                            key={tab.value}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setStatusFilter(tab.value as any);
+                            }}
+                            style={{
+                              flex: 1,
+                              border: 'none',
+                              background: statusFilter === tab.value ? 'white' : 'transparent',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              color: statusFilter === tab.value ? '#2C3E50' : '#7F8C8D',
+                              boxShadow: statusFilter === tab.value ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+
                       <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {filteredStudents.length > 0 ? (
                           filteredStudents.map(s => (
@@ -348,31 +505,143 @@ export default function PrincipalRekapPage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">📅 Pilih Bulan</label>
-                <select
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(Number(e.target.value))}
+                <div
+                  onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
                   className="input"
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: monthDropdownOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    color: '#2C3E50',
+                  }}
                 >
-                  {MONTHS.map((m, idx) => (
-                    <option key={idx} value={idx}>{m}</option>
-                  ))}
-                </select>
+                  <span>{MONTHS[selectedMonth]}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+                {monthDropdownOpen && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setMonthDropdownOpen(false)} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1px solid #E8ECF0',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                      marginTop: '6px',
+                      padding: '8px',
+                      zIndex: 100,
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      {MONTHS.map((m, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedMonth(idx);
+                            setMonthDropdownOpen(false);
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#2C3E50',
+                            background: idx === selectedMonth ? 'var(--bg-cream)' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                        >
+                          {m}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="input-label">🗓️ Tahun</label>
-                <select
-                  value={selectedYear}
-                  onChange={e => setSelectedYear(Number(e.target.value))}
+                <div
+                  onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
                   className="input"
-                  style={{ cursor: 'pointer' }}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: yearDropdownOpen ? '1.5px solid var(--primary)' : '1.5px solid #E8ECF0',
+                    fontFamily: 'Nunito, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    color: '#2C3E50',
+                  }}
                 >
-                  {[2025, 2026, 2027].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+                  <span>{selectedYear}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#AEB6BF', flexShrink: 0 }}>▼</span>
+                </div>
+                {yearDropdownOpen && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setYearDropdownOpen(false)} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '16px',
+                      border: '1px solid #E8ECF0',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                      marginTop: '6px',
+                      padding: '8px',
+                      zIndex: 100,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}>
+                      {[2025, 2026, 2027].map(y => (
+                        <div
+                          key={y}
+                          onClick={() => {
+                            setSelectedYear(y);
+                            setYearDropdownOpen(false);
+                          }}
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontFamily: 'Nunito, sans-serif',
+                            fontWeight: 700,
+                            color: '#2C3E50',
+                            background: y === selectedYear ? 'var(--bg-cream)' : 'transparent',
+                            transition: 'background 0.2s',
+                          }}
+                        >
+                          {y}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
