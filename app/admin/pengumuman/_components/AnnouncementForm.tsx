@@ -29,12 +29,13 @@ export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 
     let isMounted = true;
     async function loadQuill() {
       try {
-        const Quill = (await import('quill')).default;
-        // Quill snow CSS
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css';
+        const { default: Quill } = await import('quill');
+
+        // Load Quill Snow CSS from CDN (prevents SSR issues with CSS imports)
         if (!document.head.querySelector('link[href*="quill.snow"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css';
           document.head.appendChild(link);
         }
 
@@ -68,6 +69,7 @@ export default function AnnouncementForm({ initialData, onSubmit, submitLabel = 
     loadQuill();
     return () => { isMounted = false; };
   }, []);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

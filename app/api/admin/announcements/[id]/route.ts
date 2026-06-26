@@ -9,12 +9,12 @@ const supabaseAdmin = createClient(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { title, content, startDate, endDate, isActive } = body;
-    const id = params.id;
 
     const updateData: Record<string, any> = {};
     if (title !== undefined) updateData.title = title;
@@ -48,13 +48,14 @@ export async function PUT(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { error } = await supabaseAdmin
       .from('announcements')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
     return NextResponse.json({ success: true });

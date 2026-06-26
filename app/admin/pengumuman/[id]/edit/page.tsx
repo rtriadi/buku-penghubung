@@ -4,24 +4,29 @@
 import { useEffect, useState } from 'react';
 import { getAllAnnouncements, updateAnnouncement } from '@/lib/db';
 import type { Announcement } from '@/lib/types';
+import { useParams } from 'next/navigation';
 import AnnouncementForm from '../../_components/AnnouncementForm';
 
-export default function EditPengumumanPage({ params }: { params: { id: string } }) {
+export default function EditPengumumanPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
+      if (!id) return;
       const all = await getAllAnnouncements();
-      const found = all.find(a => a.id === params.id);
+      const found = all.find(a => a.id === id);
       setAnnouncement(found || null);
       setLoading(false);
     }
     load();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
-    await updateAnnouncement(params.id, data);
+    if (!id) return;
+    await updateAnnouncement(id, data);
   };
 
   if (loading) {
