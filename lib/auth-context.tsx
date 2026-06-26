@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User } from './types';
+import type { User, Role } from './types';
 import { supabase } from './supabase';
 
 interface AuthContextType {
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         id: profile.id,
         name: profile.name,
-        role: profile.role as 'admin' | 'teacher' | 'parent',
+        role: profile.role as Role,
         email: email,
         classId: profile.class_id || undefined,
         studentId: profile.student_id || undefined,
