@@ -69,6 +69,7 @@ export function mapSchoolActivity(a: any): SchoolActivity {
     label: a.label,
     emoji: a.emoji || '📝',
     category: a.category || 'belajar',
+    hasTime: a.has_time === true,
     order: a.order || 0,
     isActive: a.is_active !== false,
   };
@@ -543,6 +544,7 @@ export async function createSchoolActivity(data: Omit<SchoolActivity, 'id'>): Pr
         label: data.label,
         emoji: data.emoji,
         category: data.category,
+        has_time: data.hasTime === true,
         order: data.order || 0,
         is_active: data.isActive !== false,
       })
@@ -563,6 +565,7 @@ export async function updateSchoolActivity(id: string, data: Partial<SchoolActiv
     if (data.label !== undefined) dbData.label = data.label;
     if (data.emoji !== undefined) dbData.emoji = data.emoji;
     if (data.category !== undefined) dbData.category = data.category;
+    if (data.hasTime !== undefined) dbData.has_time = data.hasTime;
     if (data.order !== undefined) dbData.order = data.order;
     if (data.isActive !== undefined) dbData.is_active = data.isActive;
 

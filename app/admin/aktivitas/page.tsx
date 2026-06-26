@@ -33,6 +33,7 @@ export default function AdminAktivitasPage() {
   const [schoolLabel, setSchoolLabel] = useState('');
   const [schoolEmoji, setSchoolEmoji] = useState('📝');
   const [schoolCategory, setSchoolCategory] = useState<ActivityCategory>('belajar');
+  const [schoolHasTime, setSchoolHasTime] = useState(false);
   const [schoolOrder, setSchoolOrder] = useState(1);
   const [searchCategoryOpen, setSearchCategoryOpen] = useState(false);
   const [searchCategoryQuery, setSearchCategoryQuery] = useState('');
@@ -79,6 +80,7 @@ export default function AdminAktivitasPage() {
     setSchoolLabel('');
     setSchoolEmoji('📝');
     setSchoolCategory('belajar');
+    setSchoolHasTime(false);
     setSchoolOrder(schoolActs.length + 1);
     setSearchCategoryOpen(false);
     setSearchCategoryQuery('');
@@ -90,6 +92,7 @@ export default function AdminAktivitasPage() {
     setSchoolLabel(act.label);
     setSchoolEmoji(act.emoji || '📝');
     setSchoolCategory(act.category);
+    setSchoolHasTime(act.hasTime || false);
     setSchoolOrder(act.order || 1);
     setSearchCategoryOpen(false);
     setSearchCategoryQuery('');
@@ -107,6 +110,7 @@ export default function AdminAktivitasPage() {
           label: schoolLabel,
           emoji: schoolEmoji,
           category: schoolCategory,
+          hasTime: schoolHasTime,
           order: schoolOrder,
         });
       } else {
@@ -114,6 +118,7 @@ export default function AdminAktivitasPage() {
           label: schoolLabel,
           emoji: schoolEmoji,
           category: schoolCategory,
+          hasTime: schoolHasTime,
           order: schoolOrder,
           isActive: true,
         });
@@ -385,14 +390,26 @@ export default function AdminAktivitasPage() {
                           }
 
                           return (
-                            <span className="badge" style={{
-                              fontSize: '0.65rem',
-                              background: bg,
-                              color: fg,
-                              fontWeight: 800,
-                            }}>
-                              {label.toUpperCase()}
-                            </span>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                              <span className="badge" style={{
+                                fontSize: '0.65rem',
+                                background: bg,
+                                color: fg,
+                                fontWeight: 800,
+                              }}>
+                                {label.toUpperCase()}
+                              </span>
+                              {act.hasTime && (
+                                <span className="badge" style={{
+                                  fontSize: '0.65rem',
+                                  background: '#EBF5FB',
+                                  color: '#2980B9',
+                                  fontWeight: 800,
+                                }}>
+                                  🕒 DENGAN JAM
+                                </span>
+                              )}
+                            </div>
                           );
                         })()}
                       </div>
@@ -808,6 +825,20 @@ export default function AdminAktivitasPage() {
                     </div>
                   </>
                 )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#F8F9FA', padding: '12px', borderRadius: '12px', border: '1px solid #E8ECF0', marginTop: '-10px', marginBottom: '6px' }}>
+                <input
+                  type="checkbox"
+                  id="schoolHasTime"
+                  checked={schoolHasTime}
+                  onChange={e => setSchoolHasTime(e.target.checked)}
+                  disabled={saving}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                />
+                <label htmlFor="schoolHasTime" style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50', cursor: 'pointer' }}>
+                  Butuh Input Jam Kegiatan (contoh: Jam Hadir/Pulang)
+                </label>
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

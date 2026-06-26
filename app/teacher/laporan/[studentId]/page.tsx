@@ -26,7 +26,7 @@ export default function LaporanPage() {
   const [selectedDate, setSelectedDate] = useState(getTodayISO());
   const [student, setStudent] = useState<Student | null>(null);
   const [schoolActivities, setSchoolActivities] = useState<SchoolActivity[]>([]);
-  const [activities, setActivities] = useState<Record<string, boolean>>({});
+  const [activities, setActivities] = useState<Record<string, boolean | string>>({});
   const [teacherNote, setTeacherNote] = useState('');
   const [kondisi, setKondisi] = useState<HealthCondition>('sehat');
   const [suhu, setSuhu] = useState<string>('36.5');
@@ -59,7 +59,7 @@ export default function LaporanPage() {
           setHealthNote(log.healthStatus?.catatan || '');
         } else {
           // Set default empty checkboxes for active activities
-          const initialActs: Record<string, boolean> = {};
+          const initialActs: Record<string, boolean | string> = {};
           acts.forEach(a => {
             initialActs[a.id] = false;
           });
@@ -84,8 +84,17 @@ export default function LaporanPage() {
     setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
   }
 
-  function toggleActivity(id: string) {
-    setActivities(prev => ({ ...prev, [id]: !prev[id] }));
+  function toggleActivity(id: string, hasTime?: boolean) {
+    setActivities(prev => {
+      if (hasTime) {
+        return { ...prev, [id]: prev[id] ? false : '' };
+      }
+      return { ...prev, [id]: !prev[id] };
+    });
+  }
+
+  function setActivityTime(id: string, time: string) {
+    setActivities(prev => ({ ...prev, [id]: time }));
   }
 
   async function handleSave() {
@@ -138,7 +147,7 @@ export default function LaporanPage() {
     );
   }
 
-  const doneCounts = Object.values(activities).filter(Boolean).length;
+  const doneCounts = Object.values(activities).filter(v => v === true || (typeof v === 'string' && v !== '')).length;
   const totalCounts = schoolActivities.length;
 
   return (
@@ -265,32 +274,84 @@ export default function LaporanPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {catActivities.map(activity => (
-                    <button
-                      key={activity.id}
-                      onClick={() => toggleActivity(activity.id)}
-                      className={`activity-item ${activities[activity.id] ? 'checked' : ''}`}
-                      style={{ width: '100%', textAlign: 'left', border: 'none' }}
-                    >
-                      <span className="activity-emoji">{activity.emoji}</span>
-                      <span style={{
-                        fontFamily: 'Nunito, sans-serif',
-                        fontWeight: 700,
-                        fontSize: '0.95rem',
-                        color: activities[activity.id] ? '#1E8449' : '#2C3E50',
-                        flex: 1,
-                      }}>
-                        {activity.label}
-                      </span>
-                      <span className="checkmark">
-                        {activities[activity.id] && (
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M2 7L5.5 10.5L12 3.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                  {catActivities.map(activity => {
+                    const val = activities[activity.id];
+                    const isChecked = val === true || (activity.hasTime && typeof val === 'string' && val !== '' && val !== undefined);
+                    return (
+                      <div key={activity.id}>
+                        <button
+                          onClick={() => toggleActivity(activity.id, activity.hasTime)}
+                          className={`activity-item ${isChecked ? 'checked' : ''}`}
+                          style={{ width: '100%', textAlign: 'left', border: 'none' }}
+                        >
+                          <span className="activity-emoji">{activity.emoji}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              fontFamily: 'Nunito, sans-serif',
+                              fontWeight: 700,
+                              fontSize: '0.95rem',
+                              color: isChecked ? '#1E8449' : '#2C3E50',
+                            }}>
+                              {activity.label}
+                            </div>
+                            {activity.hasTime && isChecked && (
+                              <div style={{ fontSize: '0.75rem', color: '#1E8449', marginTop: '2px', fontWeight: 'bold' }}>
+                                Jam: {typeof val === 'string' ? val : '—'}
+                              </div>
+                            )}
+                          </div>
+                          <span className="checkmark">
+                            {isChecked && (
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M2 7L5.5 10.5L12 3.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                        </button>
+
+                        {/* Time input for teacher */}
+                        {activity.hasTime && val !== false && val !== undefined && (
+                          <div style={{ 
+                            marginTop: '10px', 
+                            paddingLeft: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }} className="animate-fade-in-up">
+                            <span style={{ fontSize: '1rem' }}>⏰</span>
+                            <label style={{ 
+                              fontSize: '0.8rem', 
+                              fontWeight: 800, 
+                              color: 'var(--text-medium)', 
+                              fontFamily: 'Nunito, sans-serif' 
+                            }}>
+                              Pukul:
+                            </label>
+                            <input
+                              type="time"
+                              value={typeof val === 'string' ? val : ''}
+                              onChange={e => setActivityTime(activity.id, e.target.value)}
+                              className="input"
+                              style={{ 
+                                maxWidth: '130px', 
+                                padding: '8px 12px',
+                                borderRadius: '10px',
+                                border: '1.5px solid #A9DFBF',
+                                background: '#E8F8EF',
+                                fontFamily: 'Nunito, sans-serif',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                color: '#1E8449',
+                                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)',
+                                outline: 'none',
+                                cursor: 'pointer'
+                              }}
+                            />
+                          </div>
                         )}
-                      </span>
-                    </button>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );

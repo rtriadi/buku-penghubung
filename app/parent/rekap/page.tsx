@@ -463,7 +463,10 @@ export default function ParentRekapPage() {
 
                       const schoolActsDone = schoolActivities
                         .filter(a => log?.schoolActivities?.[a.id])
-                        .map(a => a.label)
+                        .map(a => {
+                          const val = log?.schoolActivities?.[a.id];
+                          return a.hasTime && typeof val === 'string' ? `${a.label} (${val})` : a.label;
+                        })
                         .join(', ');
 
                       const homeActsDone = homeActivities

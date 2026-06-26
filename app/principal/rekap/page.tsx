@@ -412,12 +412,17 @@ export default function PrincipalRekapPage() {
                           </td>
                           {dates.map(d => {
                             const log = getLog(dailyLogs, student.id, d);
-                            const done = log?.schoolActivities?.[activity.id] ?? false;
+                            const val = log?.schoolActivities?.[activity.id];
+                            const done = val === true || (typeof val === 'string' && val.length > 0);
                             return (
                               <td key={d} style={{ padding: '10px 8px', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                  <ActivityDot done={done} />
-                                </div>
+                                {activity.hasTime && typeof val === 'string' && val ? (
+                                  <span style={{ fontSize: '0.65rem', color: '#8E44AD', fontWeight: 700 }}>{val}</span>
+                                ) : (
+                                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <ActivityDot done={done} />
+                                  </div>
+                                )}
                               </td>
                             );
                           })}
@@ -591,10 +596,11 @@ export default function PrincipalRekapPage() {
                             <td style={{ padding: '5px 4px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
                             {dates.map(d => {
                               const log = getLog(dailyLogs, student.id, d);
-                              const done = log?.schoolActivities?.[act.id] ?? false;
+                              const val = log?.schoolActivities?.[act.id];
+                              const done = val === true || (typeof val === 'string' && val.length > 0);
                               return (
-                                <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#8E44AD' : '#ddd', fontWeight: done ? 'bold' : 'normal' }}>
-                                  {done ? '✓' : '—'}
+                                <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#8E44AD' : '#ddd', fontSize: act.hasTime && typeof val === 'string' && val ? '6pt' : '7pt', fontWeight: done ? 'bold' : 'normal' }}>
+                                  {act.hasTime && typeof val === 'string' && val ? val : done ? '✓' : '—'}
                                 </td>
                               );
                             })}

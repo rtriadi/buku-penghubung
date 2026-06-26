@@ -292,23 +292,25 @@ export default function ParentDashboard() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {schoolActivities.map(act => {
                   const done = schoolLog.schoolActivities[act.id];
+                  const isDone = done === true || (typeof done === 'string' && done !== '');
+                  const timeStr = typeof done === 'string' ? done : '';
                   return (
                     <div key={act.id} style={{
                       display: 'flex', alignItems: 'center', gap: '6px',
                       padding: '6px 12px',
                       borderRadius: '999px',
-                      background: done ? '#D5F5E3' : '#F2F3F4',
-                      border: `1px solid ${done ? '#A9DFBF' : '#E8ECF0'}`,
+                      background: isDone ? '#D5F5E3' : '#F2F3F4',
+                      border: `1px solid ${isDone ? '#A9DFBF' : '#E8ECF0'}`,
                     }}>
                       <span style={{ fontSize: '1rem' }}>{act.emoji}</span>
                       <span style={{
                         fontSize: '0.75rem',
                         fontFamily: 'Nunito, sans-serif',
                         fontWeight: 700,
-                        color: done ? '#1E8449' : '#AEB6BF',
-                        textDecoration: done ? 'none' : 'line-through',
+                        color: isDone ? '#1E8449' : '#AEB6BF',
+                        textDecoration: isDone ? 'none' : 'line-through',
                       }}>
-                        {act.label}
+                        {act.label} {timeStr ? `(${timeStr})` : ''}
                       </span>
                     </div>
                   );

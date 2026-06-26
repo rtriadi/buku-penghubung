@@ -22,6 +22,7 @@ export interface SchoolActivity {
   label: string;
   emoji: string;
   category: ActivityCategory;
+  hasTime?: boolean;
   order?: number;
   isActive?: boolean; // admin can toggle
 }
@@ -45,7 +46,7 @@ export interface DailyLog {
   id: string;
   studentId: string;
   date: string;
-  schoolActivities: Record<string, boolean>;
+  schoolActivities: Record<string, boolean | string>;
   teacherNote: string;
   healthStatus: HealthStatus;
   createdBy: string;

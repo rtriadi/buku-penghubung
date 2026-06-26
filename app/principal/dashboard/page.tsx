@@ -346,12 +346,17 @@ export default function PrincipalDashboard() {
                       <h4 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50', marginBottom: '8px' }}>📋 Kegiatan Diikuti:</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
                         {schoolActivities.map(act => {
-                          const done = dailyLogs[selectedStudent.id].schoolActivities[act.id];
+                          const done = dailyLogs[selectedStudent.id]?.schoolActivities?.[act.id];
+                          const isDone = done === true || (typeof done === 'string' && done !== '');
+                          const timeStr = typeof done === 'string' ? done : '';
                           return (
-                            <div key={act.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: done ? '#E8F8F5' : '#F9EBEA', borderRadius: '8px', fontSize: '0.8rem' }}>
+                            <div key={act.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: isDone ? '#E8F8F5' : '#F9EBEA', borderRadius: '8px', fontSize: '0.8rem' }}>
                               <span>{act.emoji}</span>
-                              <span style={{ flex: 1, fontWeight: 700, color: done ? '#117A65' : '#78281F', textDecoration: done ? 'none' : 'line-through' }}>{act.label}</span>
-                              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: done ? '#117A65' : '#C0392B' }}>{done ? 'Diikuti' : 'Absen'}</span>
+                              <span style={{ flex: 1, fontWeight: 700, color: isDone ? '#117A65' : '#78281F', textDecoration: isDone ? 'none' : 'line-through' }}>
+                                {act.label}
+                                {act.hasTime && isDone && timeStr && ` (Pukul ${timeStr})`}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: isDone ? '#117A65' : '#C0392B' }}>{isDone ? 'Diikuti' : 'Absen'}</span>
                             </div>
                           );
                         })}

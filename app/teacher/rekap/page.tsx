@@ -404,12 +404,17 @@ export default function TeacherRekapPage() {
                       </td>
                       {dates.map(d => {
                         const log = getLog(dailyLogs, student.id, d);
-                        const done = log?.schoolActivities?.[activity.id] ?? false;
+                        const val = log?.schoolActivities?.[activity.id];
+                        const done = val === true || (typeof val === 'string' && val.length > 0);
                         return (
                           <td key={d} style={{ padding: '10px 8px', textAlign: 'center' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                              <ActivityDot done={done} />
-                            </div>
+                            {activity.hasTime && typeof val === 'string' && val ? (
+                              <span style={{ fontSize: '0.65rem', color: '#27AE60', fontWeight: 700 }}>{val}</span>
+                            ) : (
+                              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <ActivityDot done={done} />
+                              </div>
+                            )}
                           </td>
                         );
                       })}
@@ -567,10 +572,11 @@ export default function TeacherRekapPage() {
                         <td style={{ padding: '5px 4px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
                         {dates.map(d => {
                           const log = getLog(dailyLogs, student.id, d);
-                          const done = log?.schoolActivities?.[act.id] ?? false;
+                          const val = log?.schoolActivities?.[act.id];
+                          const done = val === true || (typeof val === 'string' && val.length > 0);
                           return (
-                            <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#27AE60' : '#ddd', fontWeight: done ? 'bold' : 'normal' }}>
-                              {done ? '✓' : '—'}
+                            <td key={d} style={{ padding: '5px 1px', textAlign: 'center', border: '1px solid #ddd', color: done ? '#27AE60' : '#ddd', fontSize: act.hasTime && typeof val === 'string' && val ? '6pt' : '7pt', fontWeight: done ? 'bold' : 'normal' }}>
+                              {act.hasTime && typeof val === 'string' && val ? val : done ? '✓' : '—'}
                             </td>
                           );
                         })}
