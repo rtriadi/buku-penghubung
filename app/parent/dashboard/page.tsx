@@ -272,64 +272,6 @@ export default function ParentDashboard() {
             touchAction: 'pan-y',
           }}
         >
-          {students.length > 1 && (
-            <>
-              {/* Left Arrow Button */}
-              <button
-                onClick={switchToPrevChild}
-                style={{
-                  position: 'absolute',
-                  left: '-12px',
-                  top: '40px',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'white',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  color: '#2980B9',
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                  cursor: 'pointer',
-                  zIndex: 10,
-                  fontWeight: 'bold',
-                  userSelect: 'none',
-                }}
-              >
-                ◀
-              </button>
-              
-              {/* Right Arrow Button */}
-              <button
-                onClick={switchToNextChild}
-                style={{
-                  position: 'absolute',
-                  right: '-12px',
-                  top: '40px',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'white',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  color: '#2980B9',
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                  cursor: 'pointer',
-                  zIndex: 10,
-                  fontWeight: 'bold',
-                  userSelect: 'none',
-                }}
-              >
-                ▶
-              </button>
-            </>
-          )}
-
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', padding: '0 8px' }}>
             <div style={{
               width: '72px', height: '72px', borderRadius: '20px',
@@ -341,9 +283,80 @@ export default function ParentDashboard() {
               {student.avatarEmoji}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {student.nickname}
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', color: 'white', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                  {student.nickname}
+                </h1>
+                {students.length > 1 && (
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    background: 'rgba(255,255,255,0.2)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '2px 4px',
+                    gap: '4px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                  }}>
+                    <button
+                      onClick={switchToPrevChild}
+                      style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        border: 'none',
+                        color: 'white',
+                        fontSize: '0.65rem',
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.color = '#2980B9';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                        e.currentTarget.style.color = 'white';
+                      }}
+                    >
+                      ◀
+                    </button>
+                    <span style={{ fontSize: '0.65rem', color: 'white', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 2px', userSelect: 'none' }}>Ganti</span>
+                    <button
+                      onClick={switchToNextChild}
+                      style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        border: 'none',
+                        color: 'white',
+                        fontSize: '0.65rem',
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.color = '#2980B9';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                        e.currentTarget.style.color = 'white';
+                      }}
+                    >
+                      ▶
+                    </button>
+                  </div>
+                )}
+              </div>
               <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</p>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                 📅 {mounted ? formatDateIndonesia(selectedDate) : '—'}

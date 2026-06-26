@@ -10,7 +10,8 @@ import {
   getActiveSchoolActivities,
   getActiveHomeActivities,
   getClasses,
-  getUserById
+  getUserById,
+  getStudentsByParent
 } from '@/lib/db';
 import { formatDateIndonesia, formatDateShort, downloadPDF } from '@/lib/utils';
 import type { DailyLog, HomeLog, Student, SchoolActivity, HomeActivity } from '@/lib/types';
@@ -43,6 +44,7 @@ export default function ParentRekapPage() {
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [homeLogs, setHomeLogs] = useState<HomeLog[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
 
   // Month and Year filters
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -77,6 +79,46 @@ export default function ParentRekapPage() {
 
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
 
+  // Load all children for this parent
+  useEffect(() => {
+    async function loadParentStudents() {
+      if (user) {
+        try {
+          const list = await getStudentsByParent(user.id);
+          const activeList = list.filter(s => s.status !== 'alumni');
+          setStudents(activeList);
+        } catch (err) {
+          console.error('Error loading parent students in rekap:', err);
+        }
+      }
+    }
+    loadParentStudents();
+  }, [user]);
+
+  const switchToNextChild = () => {
+    if (students.length <= 1) return;
+    const currentIndex = students.findIndex(s => s.id === activeChildId);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % students.length;
+    const nextChild = students[nextIndex];
+    
+    setActiveChildId(nextChild.id);
+    localStorage.setItem('buku_penghubung_active_child_id', nextChild.id);
+    window.dispatchEvent(new Event('activeChildChanged'));
+  };
+
+  const switchToPrevChild = () => {
+    if (students.length <= 1) return;
+    const currentIndex = students.findIndex(s => s.id === activeChildId);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + students.length) % students.length;
+    const prevChild = students[prevIndex];
+    
+    setActiveChildId(prevChild.id);
+    localStorage.setItem('buku_penghubung_active_child_id', prevChild.id);
+    window.dispatchEvent(new Event('activeChildChanged'));
+  };
+
   useEffect(() => {
     // Set initial child ID from localStorage
     const storedId = localStorage.getItem('buku_penghubung_active_child_id');
@@ -87,6 +129,7 @@ export default function ParentRekapPage() {
       setActiveChildId(newId || user?.studentId || null);
     };
 
+    window.dispatchEvent(new Event('activeChildChanged'));
     window.addEventListener('activeChildChanged', handleChildChanged);
     return () => {
       window.removeEventListener('activeChildChanged', handleChildChanged);
@@ -406,12 +449,83 @@ export default function ParentRekapPage() {
             width: '56px', height: '56px', borderRadius: '16px',
             background: 'linear-gradient(135deg, #D6EAF8, #AED6F1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+            flexShrink: 0,
           }}>
             {student.avatarEmoji}
           </div>
-          <div>
-            <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem' }}>{student.name}</div>
-            <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Kelas A • Laporan Bulanan {MONTHS[selectedMonth]} {selectedYear}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.05rem', color: '#2C3E50' }}>{student.name}</div>
+              {students.length > 1 && (
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: 'rgba(41, 128, 185, 0.1)',
+                  border: '1px solid rgba(41, 128, 185, 0.15)',
+                  borderRadius: '12px',
+                  padding: '2px 4px',
+                  gap: '4px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}>
+                  <button
+                    onClick={switchToPrevChild}
+                    style={{
+                      background: 'rgba(41, 128, 185, 0.15)',
+                      border: 'none',
+                      color: '#2980B9',
+                      fontSize: '0.65rem',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#2980B9';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(41, 128, 185, 0.15)';
+                      e.currentTarget.style.color = '#2980B9';
+                    }}
+                  >
+                    ◀
+                  </button>
+                  <span style={{ fontSize: '0.65rem', color: '#2980B9', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 2px', userSelect: 'none' }}>Ganti</span>
+                  <button
+                    onClick={switchToNextChild}
+                    style={{
+                      background: 'rgba(41, 128, 185, 0.15)',
+                      border: 'none',
+                      color: '#2980B9',
+                      fontSize: '0.65rem',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#2980B9';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(41, 128, 185, 0.15)';
+                      e.currentTarget.style.color = '#2980B9';
+                    }}
+                  >
+                    ▶
+                  </button>
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#7f8c8d', marginTop: '2px' }}>Kelas A • Laporan Bulanan {MONTHS[selectedMonth]} {selectedYear}</div>
           </div>
         </div>
       </div>
