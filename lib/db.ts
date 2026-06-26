@@ -278,6 +278,25 @@ export async function promoteToPrincipal(userId: string): Promise<boolean> {
   }
 }
 
+export async function setTeacherAdmin(userId: string | null): Promise<boolean> {
+  try {
+    const res = await fetch('/api/admin/set-teacher-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Gagal menetapkan admin dari pihak guru.');
+    }
+    return true;
+  } catch (err: any) {
+    console.error('setTeacherAdmin error:', err);
+    throw err;
+  }
+}
+
 // --- Students ---
 export async function getStudents(): Promise<Student[]> {
   try {

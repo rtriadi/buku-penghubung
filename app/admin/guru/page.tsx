@@ -11,6 +11,7 @@ import {
   resetPassword,
   generateEmailFromName,
   promoteToPrincipal,
+  setTeacherAdmin,
   DEFAULT_PASSWORD
 } from '@/lib/db';
 import type { User, AccountCredentials, ClassInfo } from '@/lib/types';
@@ -34,6 +35,7 @@ export default function AdminGuruPage() {
   const [creds, setCreds] = useState<AccountCredentials | null>(null);
 
   const [currentPrincipal, setCurrentPrincipal] = useState<User | null>(null);
+  const [currentTeacherAdmin, setCurrentTeacherAdmin] = useState<User | null>(null);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -60,10 +62,14 @@ export default function AdminGuruPage() {
         getUsers(),
         getClasses()
       ]);
-      setTeachers(us.filter(u => u.role === 'teacher'));
+      // We list both standard teachers and the promoted teacher-admin (excluding main admin)
+      setTeachers(us.filter(u => u.role === 'teacher' || (u.role === 'admin' && u.email !== 'admin@darulkhairat.com')));
       
       const principal = us.find(u => u.role === 'principal');
       setCurrentPrincipal(principal || null);
+
+      const teacherAdmin = us.find(u => u.role === 'admin' && u.email !== 'admin@darulkhairat.com');
+      setCurrentTeacherAdmin(teacherAdmin || null);
 
       setClasses(cls);
     } catch (err) {
@@ -196,6 +202,34 @@ export default function AdminGuruPage() {
     }
   }
 
+  async function handleSetTeacherAdmin(demote = false) {
+    if (!editingId) return;
+    const teacherToPromote = teachers.find(t => t.id === editingId);
+    if (!teacherToPromote) return;
+
+    let confirmMsg = '';
+    if (demote) {
+      confirmMsg = `Apakah Anda yakin ingin melepas status Admin dari ${teacherToPromote.name}? Guru ini akan dikembalikan menjadi Guru biasa.`;
+    } else {
+      confirmMsg = `Apakah Anda yakin ingin menjadikan ${teacherToPromote.name} sebagai Admin dari pihak Guru? Guru ini akan memiliki hak akses penuh layaknya Admin. Guru Admin sebelumnya (jika ada) akan dikembalikan menjadi Guru biasa.`;
+    }
+    
+    if (confirm(confirmMsg)) {
+      try {
+        setSaving(true);
+        await setTeacherAdmin(demote ? null : editingId);
+        alert(demote ? `Berhasil melepas status Admin!` : `Berhasil menetapkan ${teacherToPromote.name} sebagai Admin Guru!`);
+        setShowModal(false);
+        await refreshList();
+      } catch (err: any) {
+        console.error('Error setting teacher admin:', err);
+        alert(err.message || 'Gagal mengubah status admin.');
+      } finally {
+        setSaving(false);
+      }
+    }
+  }
+
   return (
     <>
       <div className="animate-fade-in-up">
@@ -273,6 +307,34 @@ export default function AdminGuruPage() {
         </div>
       )}
 
+      {/* Current Teacher Admin Info Card */}
+      {currentTeacherAdmin && (
+        <div style={{
+          background: '#E8F8F5',
+          border: '1.5px solid #D1F2EB',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 4px 12px rgba(22,160,133,0.05)',
+        }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#16A085', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px', fontFamily: 'Nunito, sans-serif' }}>
+              🔑 Admin Guru Saat Ini (Wewenang Penuh)
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#2C3E50' }}>
+              {currentTeacherAdmin.name}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#7F8C8D' }}>
+              {currentTeacherAdmin.email}
+            </div>
+          </div>
+          <span style={{ fontSize: '2rem' }}>🔑</span>
+        </div>
+      )}
+
       {/* Loading state */}
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#1E8449', fontFamily: 'Nunito, sans-serif' }}>
@@ -291,16 +353,21 @@ export default function AdminGuruPage() {
               teachers.map(teacher => (
                 <div key={teacher.id} className="card" style={{ padding: '16px', border: '1.5px solid #E8ECF0', borderRadius: '16px', marginBottom: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50' }}>👩‍🏫 {teacher.name}</h4>
+                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#2C3E50', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      👩‍🏫 {teacher.name}
+                      {teacher.role === 'admin' && (
+                        <span style={{ fontSize: '0.65rem', background: '#E8F8F5', color: '#16A085', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Admin Guru</span>
+                      )}
+                    </h4>
                     <span style={{
                       fontSize: '0.7rem',
                       fontWeight: 800,
-                      background: teacher.classId ? '#EBF5FB' : '#FDEDEC',
-                      color: teacher.classId ? '#2980B9' : '#E74C3C',
+                      background: teacher.role === 'admin' ? '#E8F8F5' : teacher.classId ? '#EBF5FB' : '#FDEDEC',
+                      color: teacher.role === 'admin' ? '#16A085' : teacher.classId ? '#2980B9' : '#E74C3C',
                       padding: '3px 8px',
                       borderRadius: '6px',
                     }}>
-                      {teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ada Kelas'}
+                      {teacher.role === 'admin' ? 'Hak Akses Admin' : teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ada Kelas'}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 14px 0', fontSize: '0.8rem', color: '#7f8c8d', fontFamily: 'monospace' }}>
@@ -390,6 +457,9 @@ export default function AdminGuruPage() {
                     }}>
                       <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2C3E50' }}>
                         👩‍🏫 {teacher.name}
+                        {teacher.role === 'admin' && (
+                          <span style={{ marginLeft: '8px', fontSize: '0.7rem', background: '#E8F8F5', color: '#16A085', padding: '2px 8px', borderRadius: '999px', fontWeight: 'bold' }}>Admin Guru</span>
+                        )}
                       </td>
                       <td style={{ padding: '16px 20px', color: '#5D6D7E', fontFamily: 'monospace' }}>
                         {teacher.email}
@@ -398,12 +468,12 @@ export default function AdminGuruPage() {
                         <span style={{
                           fontSize: '0.75rem',
                           fontWeight: 800,
-                          background: teacher.classId ? '#EBF5FB' : '#FDEDEC',
-                          color: teacher.classId ? '#2980B9' : '#E74C3C',
+                          background: teacher.role === 'admin' ? '#E8F8F5' : teacher.classId ? '#EBF5FB' : '#FDEDEC',
+                          color: teacher.role === 'admin' ? '#16A085' : teacher.classId ? '#2980B9' : '#E74C3C',
                           padding: '4px 10px',
                           borderRadius: '8px',
                         }}>
-                          {teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ditugaskan'}
+                          {teacher.role === 'admin' ? 'Hak Akses Admin' : teacher.classId ? (classes.find(c => c.id === teacher.classId)?.name || teacher.classId.toUpperCase()) : 'Belum Ditugaskan'}
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
@@ -664,7 +734,10 @@ export default function AdminGuruPage() {
                 <div style={{
                   marginTop: '16px',
                   borderTop: '1px solid #F0F2F5',
-                  paddingTop: '16px'
+                  paddingTop: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
                 }}>
                   <button
                     type="button"
@@ -689,6 +762,62 @@ export default function AdminGuruPage() {
                   >
                     🎓 Jadikan Kepala Sekolah
                   </button>
+
+                  {(() => {
+                    const selectedTeacher = teachers.find(t => t.id === editingId);
+                    if (!selectedTeacher) return null;
+                    const isCurrentlyAdmin = selectedTeacher.role === 'admin';
+                    
+                    return isCurrentlyAdmin ? (
+                      <button
+                        type="button"
+                        onClick={() => handleSetTeacherAdmin(true)}
+                        disabled={saving}
+                        style={{
+                          background: 'linear-gradient(135deg, #E67E22, #D35400)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 12px rgba(230,126,34,0.2)'
+                        }}
+                      >
+                        ⚠️ Kembalikan Menjadi Guru Biasa
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSetTeacherAdmin(false)}
+                        disabled={saving}
+                        style={{
+                          background: 'linear-gradient(135deg, #2980B9, #3498DB)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 12px rgba(41,128,185,0.2)'
+                        }}
+                      >
+                        🔑 Jadikan Admin Guru
+                      </button>
+                    );
+                  })()}
                 </div>
               )}
 
