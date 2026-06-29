@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS school_activities (
   has_time BOOLEAN DEFAULT false NOT NULL,
   "order" INT DEFAULT 0,
   is_active BOOLEAN DEFAULT true NOT NULL,
+  is_fullday_only BOOLEAN DEFAULT false NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
@@ -519,16 +520,16 @@ VALUES ('e0100000-0000-0000-0000-000000000010', 'Miranda Sumaila', 'teacher', 'm
 ON CONFLICT (id) DO UPDATE SET role = 'teacher', name = 'Miranda Sumaila', class_id = NULL;
 
 -- D. Masukkan aktivitas sekolah default
-INSERT INTO school_activities (id, label, emoji, category, "order", is_active) VALUES
-  ('hadir', 'Hadir', '✅', 'kehadiran', 1, true),
-  ('sholat_dhuha', 'Sholat Dhuha', '🕌', 'ibadah', 2, true),
-  ('snack_pagi', 'Snack Pagi', '🥪', 'makan', 3, true),
-  ('belajar', 'Belajar & Bermain', '📚', 'belajar', 4, true),
-  ('makan_siang', 'Makan Siang', '🍱', 'makan', 5, true),
-  ('tidur_siang', 'Tidur Siang', '😴', 'istirahat', 6, true),
-  ('sholat_dzuhur', 'Sholat Dzuhur', '🕌', 'ibadah', 7, true),
-  ('sholat_ashar', 'Sholat Ashar', '🌤️', 'ibadah', 8, true),
-  ('pulang', 'Pulang', '🏠', 'kehadiran', 9, true)
+INSERT INTO school_activities (id, label, emoji, category, "order", is_active, is_fullday_only) VALUES
+  ('hadir', 'Hadir', '✅', 'kehadiran', 1, true, false),
+  ('sholat_dhuha', 'Sholat Dhuha', '🕌', 'ibadah', 2, true, false),
+  ('snack_pagi', 'Snack Pagi', '🥪', 'makan', 3, true, false),
+  ('belajar', 'Belajar & Bermain', '📚', 'belajar', 4, true, false),
+  ('makan_siang', 'Makan Siang', '🍱', 'makan', 5, true, false),
+  ('tidur_siang', 'Tidur Siang', '😴', 'istirahat', 6, true, false),
+  ('sholat_dzuhur', 'Sholat Dzuhur', '🕌', 'ibadah', 7, true, false),
+  ('sholat_ashar', 'Sholat Ashar', '🌤️', 'ibadah', 8, true, true),
+  ('pulang', 'Pulang', '🏠', 'kehadiran', 9, true, false)
 ON CONFLICT (id) DO NOTHING;
 
 -- E. Masukkan aktivitas rumah default

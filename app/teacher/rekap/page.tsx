@@ -77,7 +77,7 @@ export default function TeacherRekapPage() {
   const dates = getDatesInMonth(selectedYear, selectedMonth);
   const student = students.find(s => s.id === selectedStudentId);
   const visibleSchoolActivities = student?.program === 'halfday'
-    ? schoolActivities.filter(a => a.id !== 'sholat_ashar')
+    ? schoolActivities.filter(a => !a.isFulldayOnly)
     : schoolActivities;
 
   const filteredStudents = students.filter(s =>

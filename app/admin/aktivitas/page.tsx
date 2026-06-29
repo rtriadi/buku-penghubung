@@ -34,6 +34,7 @@ export default function AdminAktivitasPage() {
   const [schoolEmoji, setSchoolEmoji] = useState('📝');
   const [schoolCategory, setSchoolCategory] = useState<ActivityCategory>('belajar');
   const [schoolHasTime, setSchoolHasTime] = useState(false);
+  const [schoolIsFulldayOnly, setSchoolIsFulldayOnly] = useState(false);
   const [schoolOrder, setSchoolOrder] = useState(1);
   const [searchCategoryOpen, setSearchCategoryOpen] = useState(false);
   const [searchCategoryQuery, setSearchCategoryQuery] = useState('');
@@ -81,6 +82,7 @@ export default function AdminAktivitasPage() {
     setSchoolEmoji('📝');
     setSchoolCategory('belajar');
     setSchoolHasTime(false);
+    setSchoolIsFulldayOnly(false);
     setSchoolOrder(schoolActs.length + 1);
     setSearchCategoryOpen(false);
     setSearchCategoryQuery('');
@@ -93,6 +95,7 @@ export default function AdminAktivitasPage() {
     setSchoolEmoji(act.emoji || '📝');
     setSchoolCategory(act.category);
     setSchoolHasTime(act.hasTime || false);
+    setSchoolIsFulldayOnly(act.isFulldayOnly || false);
     setSchoolOrder(act.order || 1);
     setSearchCategoryOpen(false);
     setSearchCategoryQuery('');
@@ -111,6 +114,7 @@ export default function AdminAktivitasPage() {
           emoji: schoolEmoji,
           category: schoolCategory,
           hasTime: schoolHasTime,
+          isFulldayOnly: schoolIsFulldayOnly,
           order: schoolOrder,
         });
       } else {
@@ -119,6 +123,7 @@ export default function AdminAktivitasPage() {
           emoji: schoolEmoji,
           category: schoolCategory,
           hasTime: schoolHasTime,
+          isFulldayOnly: schoolIsFulldayOnly,
           order: schoolOrder,
           isActive: true,
         });
@@ -407,6 +412,16 @@ export default function AdminAktivitasPage() {
                                   fontWeight: 800,
                                 }}>
                                   🕒 DENGAN JAM
+                                </span>
+                              )}
+                              {act.isFulldayOnly && (
+                                <span className="badge" style={{
+                                  fontSize: '0.65rem',
+                                  background: '#FEF9E7',
+                                  color: '#D35400',
+                                  fontWeight: 800,
+                                }}>
+                                  🌅 KHUSUS FULLDAY
                                 </span>
                               )}
                             </div>
@@ -838,6 +853,20 @@ export default function AdminAktivitasPage() {
                 />
                 <label htmlFor="schoolHasTime" style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50', cursor: 'pointer' }}>
                   Butuh Input Jam Kegiatan (contoh: Jam Hadir/Pulang)
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#FEF9E7', padding: '12px', borderRadius: '12px', border: '1px solid #F9E79F', marginTop: '-10px', marginBottom: '6px' }}>
+                <input
+                  type="checkbox"
+                  id="schoolIsFulldayOnly"
+                  checked={schoolIsFulldayOnly}
+                  onChange={e => setSchoolIsFulldayOnly(e.target.checked)}
+                  disabled={saving}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                />
+                <label htmlFor="schoolIsFulldayOnly" style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#D35400', cursor: 'pointer' }}>
+                  🌅 Hanya untuk Siswa Program Fullday (Sembunyikan untuk Halfday)
                 </label>
               </div>
 

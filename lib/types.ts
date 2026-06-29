@@ -27,6 +27,7 @@ export interface SchoolActivity {
   hasTime?: boolean;
   order?: number;
   isActive?: boolean; // admin can toggle
+  isFulldayOnly?: boolean;
 }
 
 export interface HomeActivity {

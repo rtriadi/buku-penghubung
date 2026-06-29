@@ -32,7 +32,7 @@ function StudentCard({
   activities: SchoolActivity[];
 }) {
   const total = student.program === 'halfday'
-    ? activities.filter(a => a.id !== 'sholat_ashar').length
+    ? activities.filter(a => !a.isFulldayOnly).length
     : activities.length;
   const done = countActivitiesDone(log);
   const status = getStatusInfo(log, total);
@@ -191,7 +191,7 @@ export default function TeacherDashboard() {
     const log = logs[s.id];
     if (!log) return false;
     const total = s.program === 'halfday'
-      ? activities.filter(a => a.id !== 'sholat_ashar').length
+      ? activities.filter(a => !a.isFulldayOnly).length
       : activities.length;
     return countActivitiesDone(log) === total;
   }).length;

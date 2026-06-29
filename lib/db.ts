@@ -74,6 +74,7 @@ export function mapSchoolActivity(a: any): SchoolActivity {
     hasTime: a.has_time === true,
     order: a.order || 0,
     isActive: a.is_active !== false,
+    isFulldayOnly: a.is_fullday_only === true,
   };
 }
 
@@ -615,6 +616,7 @@ export async function createSchoolActivity(data: Omit<SchoolActivity, 'id'>): Pr
         has_time: data.hasTime === true,
         order: data.order || 0,
         is_active: data.isActive !== false,
+        is_fullday_only: data.isFulldayOnly === true,
       })
       .select()
       .single();
@@ -636,6 +638,7 @@ export async function updateSchoolActivity(id: string, data: Partial<SchoolActiv
     if (data.hasTime !== undefined) dbData.has_time = data.hasTime;
     if (data.order !== undefined) dbData.order = data.order;
     if (data.isActive !== undefined) dbData.is_active = data.isActive;
+    if (data.isFulldayOnly !== undefined) dbData.is_fullday_only = data.isFulldayOnly;
 
     const { data: updated, error } = await supabase
       .from('school_activities')

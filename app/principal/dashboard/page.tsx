@@ -372,7 +372,7 @@ export default function PrincipalDashboard() {
                           <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
                             {hasSchoolLog && (
                               <span className="badge" style={{ background: '#E8F8F5', color: '#117A65', fontSize: '0.65rem' }}>
-                                🏫 Guru ({schoolDone}/{student.program === 'halfday' ? schoolActivities.filter(a => a.id !== 'sholat_ashar').length : schoolActivities.length})
+                                🏫 Guru ({schoolDone}/{student.program === 'halfday' ? schoolActivities.filter(a => !a.isFulldayOnly).length : schoolActivities.length})
                               </span>
                             )}
                             {hasHomeLog && (
@@ -491,7 +491,7 @@ export default function PrincipalDashboard() {
                       {/* Activities Checklist */}
                       <h4 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#2C3E50', marginBottom: '8px' }}>📋 Kegiatan Diikuti:</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-                        {schoolActivities.filter(act => !(selectedStudent?.program === 'halfday' && act.id === 'sholat_ashar')).map(act => {
+                        {schoolActivities.filter(act => !(selectedStudent?.program === 'halfday' && act.isFulldayOnly)).map(act => {
                           const done = dailyLogs[selectedStudent.id]?.schoolActivities?.[act.id];
                           const isDone = done === true || (typeof done === 'string' && done !== '');
                           const timeStr = typeof done === 'string' ? done : '';

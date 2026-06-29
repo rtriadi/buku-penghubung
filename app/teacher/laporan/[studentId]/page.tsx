@@ -77,7 +77,7 @@ export default function LaporanPage() {
         
         let filteredActs = acts;
         if (st && st.program === 'halfday') {
-          filteredActs = acts.filter(a => a.id !== 'sholat_ashar');
+          filteredActs = acts.filter(a => !a.isFulldayOnly);
         }
         setSchoolActivities(filteredActs);
 

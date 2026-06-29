@@ -193,7 +193,7 @@ export default function ParentDashboard() {
         }
         let filteredSa = sa;
         if (st && st.program === 'halfday') {
-          filteredSa = sa.filter(a => a.id !== 'sholat_ashar');
+          filteredSa = sa.filter(a => !a.isFulldayOnly);
         }
         setSchoolActivities(filteredSa);
         setActiveHomeActivities(ha);

@@ -88,7 +88,7 @@ export default function PrincipalRekapPage() {
   const selectedClass = classes.find(c => c.id === selectedClassId);
   const student = students.find(s => s.id === selectedStudentId);
   const visibleSchoolActivities = student?.program === 'halfday'
-    ? schoolActivities.filter(a => a.id !== 'sholat_ashar')
+    ? schoolActivities.filter(a => !a.isFulldayOnly)
     : schoolActivities;
 
   const statusFilteredStudents = students.filter(s => {
