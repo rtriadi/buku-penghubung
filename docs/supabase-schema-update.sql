@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS students (
   avatar_emoji TEXT DEFAULT '🦁',
   birthdate DATE NOT NULL DEFAULT '2020-01-01',
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'alumni')),
+  program TEXT NOT NULL DEFAULT 'fullday' CHECK (program IN ('fullday', 'halfday')),
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 

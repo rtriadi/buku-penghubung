@@ -33,6 +33,7 @@ export function mapStudent(s: any): Student {
     avatarEmoji: s.avatar_emoji || '🦁',
     birthdate: s.birthdate,
     status: s.status || 'active',
+    program: s.program || 'fullday',
     createdAt: s.created_at,
   };
 }
@@ -373,6 +374,7 @@ export async function createStudent(data: Omit<Student, 'id' | 'createdAt'>): Pr
         avatar_emoji: data.avatarEmoji,
         birthdate: data.birthdate,
         status: data.status || 'active',
+        program: data.program || 'fullday',
       })
       .select()
       .single();
@@ -395,6 +397,7 @@ export async function updateStudent(id: string, data: Partial<Student>): Promise
     if (data.avatarEmoji !== undefined) dbData.avatar_emoji = data.avatarEmoji;
     if (data.birthdate !== undefined) dbData.birthdate = data.birthdate;
     if (data.status !== undefined) dbData.status = data.status;
+    if (data.program !== undefined) dbData.program = data.program;
 
     const { data: updated, error } = await supabase
       .from('students')

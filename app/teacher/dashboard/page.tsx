@@ -31,7 +31,9 @@ function StudentCard({
   log: DailyLog | undefined;
   activities: SchoolActivity[];
 }) {
-  const total = activities.length;
+  const total = student.program === 'halfday'
+    ? activities.filter(a => a.id !== 'sholat_ashar').length
+    : activities.length;
   const done = countActivitiesDone(log);
   const status = getStatusInfo(log, total);
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -185,7 +187,14 @@ export default function TeacherDashboard() {
   }
 
   const totalHadir = students.filter(s => logs[s.id]?.schoolActivities?.hadir).length;
-  const totalLengkap = students.filter(s => logs[s.id] && countActivitiesDone(logs[s.id]) === activities.length).length;
+  const totalLengkap = students.filter(s => {
+    const log = logs[s.id];
+    if (!log) return false;
+    const total = s.program === 'halfday'
+      ? activities.filter(a => a.id !== 'sholat_ashar').length
+      : activities.length;
+    return countActivitiesDone(log) === total;
+  }).length;
   const totalSakit = students.filter(s => logs[s.id]?.healthStatus?.kondisi === 'sakit').length;
 
   return (

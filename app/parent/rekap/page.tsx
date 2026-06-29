@@ -197,7 +197,11 @@ export default function ParentRekapPage() {
       if (st) {
         setStudent(st);
       }
-      setSchoolActivities(sa);
+      let filteredSa = sa;
+      if (st && st.program === 'halfday') {
+        filteredSa = sa.filter(a => a.id !== 'sholat_ashar');
+      }
+      setSchoolActivities(filteredSa);
       setHomeActivities(ha);
       setDailyLogs(dl);
       setHomeLogs(hl);

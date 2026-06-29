@@ -74,10 +74,15 @@ export default function LaporanPage() {
         if (st) {
           setStudent(st);
         }
-        setSchoolActivities(acts);
+        
+        let filteredActs = acts;
+        if (st && st.program === 'halfday') {
+          filteredActs = acts.filter(a => a.id !== 'sholat_ashar');
+        }
+        setSchoolActivities(filteredActs);
 
         const initialActs: Record<string, boolean | string> = {};
-        acts.forEach(a => {
+        filteredActs.forEach(a => {
           initialActs[a.id] = false;
         });
 

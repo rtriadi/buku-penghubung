@@ -15,6 +15,7 @@ export interface Student {
   avatarEmoji: string;
   birthdate: string;
   status: 'active' | 'alumni';
+  program?: 'fullday' | 'halfday';
   createdAt?: string;
 }
 

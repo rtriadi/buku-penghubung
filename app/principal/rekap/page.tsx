@@ -87,6 +87,9 @@ export default function PrincipalRekapPage() {
   
   const selectedClass = classes.find(c => c.id === selectedClassId);
   const student = students.find(s => s.id === selectedStudentId);
+  const visibleSchoolActivities = student?.program === 'halfday'
+    ? schoolActivities.filter(a => a.id !== 'sholat_ashar')
+    : schoolActivities;
 
   const statusFilteredStudents = students.filter(s => {
     if (statusFilter === 'active') return s.status !== 'alumni';
@@ -699,7 +702,7 @@ export default function PrincipalRekapPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {schoolActivities.map((activity, idx) => (
+                      {visibleSchoolActivities.map((activity, idx) => (
                         <tr key={activity.id} style={{ background: idx % 2 === 0 ? '#FAF5FF' : 'white' }}>
                           <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', color: '#2C3E50', fontWeight: 600 }}>
                             {activity.emoji} {activity.label}
@@ -885,7 +888,7 @@ export default function PrincipalRekapPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {schoolActivities.map((act, idx) => (
+                        {visibleSchoolActivities.map((act, idx) => (
                           <tr key={act.id} style={{ background: idx % 2 === 0 ? '#f9f9f9' : 'white' }}>
                             <td style={{ padding: '5px 4px', border: '1px solid #ddd', fontWeight: 'bold' }}>{act.label}</td>
                             {dates.map(d => {

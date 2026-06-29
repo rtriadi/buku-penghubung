@@ -191,7 +191,11 @@ export default function ParentDashboard() {
         if (st) {
           setStudent(st);
         }
-        setSchoolActivities(sa);
+        let filteredSa = sa;
+        if (st && st.program === 'halfday') {
+          filteredSa = sa.filter(a => a.id !== 'sholat_ashar');
+        }
+        setSchoolActivities(filteredSa);
         setActiveHomeActivities(ha);
         setSchoolLog(sLog || null);
 

@@ -43,6 +43,7 @@ export default function AdminSiswaPage() {
   const [avatarEmoji, setAvatarEmoji] = useState('🦁');
   const [birthdate, setBirthdate] = useState('2020-01-01');
   const [status, setStatus] = useState<'active' | 'alumni'>('active');
+  const [program, setProgram] = useState<'fullday' | 'halfday'>('fullday');
   const [searchParentOpen, setSearchParentOpen] = useState(false);
   const [searchParentQuery, setSearchParentQuery] = useState('');
   const [searchClassOpen, setSearchClassOpen] = useState(false);
@@ -96,6 +97,7 @@ export default function AdminSiswaPage() {
     setAvatarEmoji('🦁');
     setBirthdate('2020-01-01');
     setStatus('active');
+    setProgram('fullday');
     setSearchParentOpen(false);
     setSearchParentQuery('');
     setSearchClassOpen(false);
@@ -112,6 +114,7 @@ export default function AdminSiswaPage() {
     setAvatarEmoji(student.avatarEmoji);
     setBirthdate(student.birthdate);
     setStatus(student.status || 'active');
+    setProgram(student.program || 'fullday');
     setSearchParentOpen(false);
     setSearchParentQuery('');
     setSearchClassOpen(false);
@@ -131,6 +134,7 @@ export default function AdminSiswaPage() {
       avatarEmoji,
       birthdate,
       status,
+      program,
     };
 
     try {
@@ -332,7 +336,19 @@ export default function AdminSiswaPage() {
                     flexDirection: 'column',
                     gap: '6px',
                   }}>
-                    <div>🏫 <strong>Kelas:</strong> {getClassName(student.classId)}</div>
+                    <div>
+                      🏫 <strong>Kelas:</strong> {getClassName(student.classId)}{' '}
+                      <span style={{
+                        fontSize: '0.7rem',
+                        background: student.program === 'halfday' ? '#EBF5FB' : '#FEF9E7',
+                        color: student.program === 'halfday' ? '#2980B9' : '#D35400',
+                        padding: '1px 6px',
+                        borderRadius: '999px',
+                        fontWeight: 'bold',
+                      }}>
+                        {student.program === 'halfday' ? '🌤️ Halfday' : '🌅 Fullday'}
+                      </span>
+                    </div>
                     <div>📅 <strong>Lahir:</strong> {student.birthdate}</div>
                     <div>👨‍👩 <strong>Wali:</strong> {getParentName(student.parentId)}</div>
                   </div>
@@ -437,7 +453,19 @@ export default function AdminSiswaPage() {
                         </div>
                       </td>
                       <td style={{ padding: '16px 20px', fontWeight: 700, color: '#34495E' }}>
-                        {getClassName(student.classId)}
+                        <div>{getClassName(student.classId)}</div>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          background: student.program === 'halfday' ? '#EBF5FB' : '#FEF9E7',
+                          color: student.program === 'halfday' ? '#2980B9' : '#D35400',
+                          padding: '2px 8px',
+                          borderRadius: '999px',
+                          fontWeight: 'bold',
+                          marginTop: '4px',
+                          display: 'inline-block'
+                        }}>
+                          {student.program === 'halfday' ? '🌤️ Halfday' : '🌅 Fullday'}
+                        </span>
                       </td>
                       <td style={{ padding: '16px 20px', color: '#5D6D7E' }}>
                         {getParentName(student.parentId)}
@@ -681,6 +709,52 @@ export default function AdminSiswaPage() {
                     </div>
                   </>
                 )}
+              </div>
+
+              <div>
+                <label className="input-label">☀️ Program Sekolah</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setProgram('fullday')}
+                    disabled={saving}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '14px',
+                      border: program === 'fullday' ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                      background: program === 'fullday' ? 'var(--bg-cream)' : 'white',
+                      fontWeight: program === 'fullday' ? 800 : 600,
+                      color: program === 'fullday' ? 'var(--primary)' : '#2C3E50',
+                      cursor: 'pointer',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    🌅 Fullday
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgram('halfday')}
+                    disabled={saving}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: '14px',
+                      border: program === 'halfday' ? '2px solid var(--primary)' : '2px solid #E8ECF0',
+                      background: program === 'halfday' ? 'var(--bg-cream)' : 'white',
+                      fontWeight: program === 'halfday' ? 800 : 600,
+                      color: program === 'halfday' ? 'var(--primary)' : '#2C3E50',
+                      cursor: 'pointer',
+                      fontFamily: 'Nunito, sans-serif',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    🌤️ Halfday
+                  </button>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
